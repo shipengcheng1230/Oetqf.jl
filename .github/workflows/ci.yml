@@ -11,6 +11,8 @@ jobs:
   test:
     name: Julia ${{ matrix.version }}/${{ matrix.threads }} threads/${{ matrix.os }}/${{ matrix.arch }}/${{ github.event_name }}
     runs-on: ${{ matrix.os }}
+    env:
+      JULIA_NUM_THREADS: ${{ matrix.threads }}
     continue-on-error: ${{ matrix.version == 'nightly' }}
     strategy:
       fail-fast: false
@@ -23,7 +25,7 @@ jobs:
         arch:
           - x64
         threads:
-          - '3'
+          - '2'
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
@@ -46,5 +48,3 @@ jobs:
       - uses: codecov/codecov-action@v1
         with:
           file: lcov.info
-        env:
-          JULIA_NUM_THREADS: ${{ matrix.threads }}
