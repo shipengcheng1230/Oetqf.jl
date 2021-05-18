@@ -5,15 +5,18 @@ using Reexport
 @reexport using OrdinaryDiffEq
 @reexport using DiffEqCallbacks
 @reexport using RecursiveArrayTools
+@reexport using HDF5
+@reexport using GmshTools
+@reexport using LinearAlgebra
 
-using LinearAlgebra
-using HDF5
 using Parameters
-using GmshTools
 using GeoGreensFunctions
 using FFTW
+using Strided
 
 using Base.Threads
+
+include("io.jl")
 
 const BEM_DIR = joinpath(@__DIR__, "BEM")
 const BEM_SRC = ["mesh.jl", "GF.jl", "property.jl", "equation.jl"]
@@ -23,6 +26,7 @@ export
     gen_mesh, gen_gmsh_mesh,
     stress_greens_function, StrikeSlip,
     RateStateQuasiDynamicProperty,
-    assemble
+    assemble,
+    wsolve
 
 end # module
