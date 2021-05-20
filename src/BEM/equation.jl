@@ -24,7 +24,7 @@ function gen_alloc(::Val{:BEMFault}, nx::I, nξ::I; T=Float64, fftw_flags=FFTW.M
         (nx, nξ),
         Matrix{T}(undef, nx, nξ),
         zeros(T, 2nx-1, nξ), zeros(T, nx, nξ), # for relative velocity, including zero
-        [Matrix{Complex{T}}(undef, nx, nξ) for _ in 1: 2]...,
+        [Matrix{Complex{T}}(undef, nx, nξ) for _ ∈ 1: 2]...,
         Matrix{T}(undef, 2nx-1, nξ),
         p1)
 end
@@ -128,7 +128,7 @@ function ode(du::ArrayPartition{T}, u::ArrayPartition{T},
 end
 
 @inline function update_strain_rate!(p::ViscosityProperty, σ::T, dϵ::T) where T
-    @inbounds @fastmath @threads for i ∈ 1: size(σ, 1)
+    @inbounds @fastmath @threads for i ∈ axes(σ, 1)
         σkk = (σ[i,1] + σ[i,4] + σ[i,6]) / 3
         σxx = σ[i,1] - σkk
         σyy = σ[i,4] - σkk
@@ -145,8 +145,8 @@ end
 end
 
 @inline function relative_strain_rate!(alloc::StressRateAllocMatrix, dϵ::AbstractMatrix, dϵ₀::AbstractVector)
-    @inbounds for j ∈ 1: size(dϵ, 2)
-        @fastmath @threads for i ∈ 1: size(dϵ, 1)
+    @inbounds for j ∈ axes(dϵ, 2)
+        @fastmath @threads for i ∈ axes(dϵ, 1)
             alloc.reldϵ[i,j] = dϵ[i,j] - dϵ₀[j]
         end
     end

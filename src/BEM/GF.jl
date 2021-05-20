@@ -82,7 +82,7 @@ function stress_greens_function(
         u = Vector{T}(undef, 12)
         q = i2s[j]
         for i ∈ 1: nElem # receiver mantle volume
-            for w in eachindex(weights)
+            for w ∈ eachindex(weights)
                 lx = localCoords[3w - 2]
                 ly = localCoords[3w - 1]
                 lz = localCoords[3w]
@@ -128,10 +128,10 @@ function stress_greens_function(
         epsv = zeros(T, 6)
         epsv[p] = one(T)
 
-        @inbounds @threads for j in 1: nElem # source mantle volume
+        @inbounds @threads for j ∈ 1: nElem # source mantle volume
             temp = Vector{T}(undef, 6)
             jcol = (p - 1) * nElem + j
-            for i in 1: nDisl # receiver fault patch
+            for i ∈ 1: nDisl # receiver fault patch
                 q = i2s[i]
                 stress_vol_hex8!(temp,
                     mf.x[q[1]], mf.y[q[2]], mf.z[q[2]], # receiver
@@ -168,7 +168,7 @@ function stress_greens_function(
             temp = Vector{T}(undef, 6)
             icol = (p - 1) * nElem + i
             for j ∈ 1: nElem # receiver
-                @fastmath @inbounds for q in eachindex(weights)
+                @fastmath @inbounds for q ∈ eachindex(weights)
                     lx = localCoords[3q - 2]
                     ly = localCoords[3q - 1]
                     lz = localCoords[3q]

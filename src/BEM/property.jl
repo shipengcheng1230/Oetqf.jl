@@ -39,7 +39,7 @@ const _field_names = Dict(
 
 @assert mapreduce(Set, union, values(_field_names)) |> length == mapreduce(length, +, values(_field_names)) "Found duplicated property field names!"
 
-for (nn, fn) in _field_names
+for (nn, fn) ∈ _field_names
     @eval begin
         fieldnames(p::$(nn)) = $(fn)
         description(p::$(nn)) = String($(QuoteNode(nn)))
@@ -47,7 +47,7 @@ for (nn, fn) in _field_names
 end
 
 function Base.:(==)(p1::P, p2::P) where P<:AbstractProperty
-    reduce(&, [getfield(p1, name) == getfield(p2, name) for name in fieldnames(p1)])
+    reduce(&, [getfield(p1, name) == getfield(p2, name) for name ∈ fieldnames(p1)])
 end
 
 function struct_to_dict(p)
