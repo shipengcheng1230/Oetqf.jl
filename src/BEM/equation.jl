@@ -121,9 +121,9 @@ function ode(du::ArrayPartition{T}, u::ArrayPartition{T},
     update_strain_rate!(pa, σ, dϵ)
     relative_strain_rate!(alloc2, dϵ, pa.dϵ₀)
     dτ_dt!(gf₁₁, alloc1) # fault - fault
-    mul!(vec(alloc1.dτ_dt), gf₂₁, vec(alloc2.reldϵ), 1, 1) # mantle - fault
+    mul!(vec(alloc1.dτ_dt), gf₂₁, vec(alloc2.reldϵ), true, true) # mantle - fault
     mul!(vec(dσ), gf₁₂, vec(alloc1.relvnp)) # fault - mantle
-    mul!(vec(dσ), gf₂₂, vec(alloc2.reldϵ), 1, 1) # mantle - mantle
+    mul!(vec(dσ), gf₂₂, vec(alloc2.reldϵ), true, true) # mantle - mantle
     update_fault!(pf, alloc1, v, θ, dv, dθ, dδ, se)
 end
 

@@ -8,12 +8,14 @@ using Reexport
 @reexport using HDF5
 @reexport using GmshTools
 @reexport using LinearAlgebra
+@reexport using FFTW
+@reexport using BSON
 
 using Parameters
 using GeoGreensFunctions
-using FFTW
 using Strided
 using Printf
+using MLStyle
 
 using Base.Threads
 
@@ -28,6 +30,7 @@ export
     stress_greens_function, StrikeSlip,
     RateStateQuasiDynamicProperty, PowerLawViscosityProperty,
     assemble,
-    wsolve
+    wsolve,
+    save_property, load_property
 
 end # module

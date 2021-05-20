@@ -32,12 +32,14 @@ end
     dϵ₀::U
 end
 
-const prop_field_names = Dict(
-    :RateStateQuasiDynamicProperty => ("a", "b", "L", "σ", "η", "vpl", "f0", "v0"),
-    :PowerLawViscosityProperty => ("γ", "n", "dϵ₀"),
+const _field_names = Dict(
+    :RateStateQuasiDynamicProperty => (:a, :b, :L, :σ, :η, :vpl, :f0, :v0),
+    :PowerLawViscosityProperty => (:γ, :n, :dϵ₀),
 )
 
-for (nn, fn) in prop_field_names
+@assert mapreduce(Set, union, values(_field_names)) |> length == mapreduce(length, +, values(_field_names)) "Found duplicated property field names!"
+
+for (nn, fn) in _field_names
     @eval begin
         fieldnames(p::$(nn)) = $(fn)
         description(p::$(nn)) = String($(QuoteNode(nn)))
@@ -45,5 +47,30 @@ for (nn, fn) in prop_field_names
 end
 
 function Base.:(==)(p1::P, p2::P) where P<:AbstractProperty
-    reduce(&, [getfield(p1, Symbol(name)) == getfield(p2, Symbol(name)) for name in fieldnames(p1)])
+    reduce(&, [getfield(p1, name) == getfield(p2, name) for name in fieldnames(p1)])
+end
+
+function struct_to_dict(p)
+    Dict(name => getfield(p, name) for name ∈ fieldnames(p))
+end
+
+function save_property(file::AbstractString, p::AbstractProperty)
+    bson(file, struct_to_dict(p))
+end
+
+function save_property(file::AbstractString, piter)
+    d = foldl(merge, map(struct_to_dict, piter))
+    bson(file, d)
+end
+
+function load_property(file::AbstractString, p::Symbol)
+    d = BSON.load(file)
+    @match p begin
+        :RateStateQuasiDynamicProperty => RateStateQuasiDynamicProperty(
+            d[:a], d[:b], d[:L], d[:σ], d[:η], d[:vpl], d[:f0], d[:v0],
+        )
+        :PowerLawViscosityProperty => PowerLawViscosityProperty(
+            d[:γ], d[:n], d[:dϵ₀],
+        )
+    end
 end

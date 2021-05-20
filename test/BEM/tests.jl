@@ -138,3 +138,21 @@ end
     du = similar(u0)
     @test_nowarn @inferred prob.f(du, u0, prob.p, 1.0)
 end
+
+@testset "Property save & load" begin
+    nx = nξ = ne = 4
+    p1 = RateStateQuasiDynamicProperty([rand(nx, nξ) for _ in 1: 4]..., rand(4)...)
+    p2 = PowerLawViscosityProperty(rand(ne), 3 * ones(Int, ne), rand(6))
+
+    ftmp = tempname()
+    save_property(ftmp, p1)
+    p1′ = load_property(ftmp, :RateStateQuasiDynamicProperty)
+    save_property(ftmp, p2)
+    p2′ = load_property(ftmp, :PowerLawViscosityProperty)
+    save_property(ftmp, [p1, p2])
+    p1′′ = load_property(ftmp, :RateStateQuasiDynamicProperty)
+    p2′′ = load_property(ftmp, :PowerLawViscosityProperty)
+
+    @test p1 == p1′ == p1′′
+    @test p2 == p2′ == p2′′
+end
