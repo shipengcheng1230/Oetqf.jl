@@ -39,7 +39,7 @@ function _equidist_mesh_strike(x::T, Δx::T) where T
     return xi, length(xi), ax
 end
 
-@with_kw struct BEMHex8Mesh{T, U} <: UnstructuredMesh{3}
+@with_kw struct BEMHex8Mesh{T, U<:Real} <: UnstructuredMesh{3}
     cx::T
     cy::T
     cz::T
@@ -50,6 +50,9 @@ end
     Δy::T
     Δz::T
     θ::U
+
+    @assert size(cx) == size(cy) == size(cz) == size(qx) == size(qy) == size(qz) ==
+        size(Δx) == size(Δy) == size(Δz)
 end
 
 function gen_gmsh_mesh(::Val{:BEMHex8Mesh},

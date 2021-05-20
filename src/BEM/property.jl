@@ -17,9 +17,7 @@ abstract type ViscosityProperty <: AbstractProperty end
     f0::T = 0.6 # ref. frictional coeff
     v0::T = 1e-6 # ref. velocity
 
-    @assert size(a) == size(b)
-    @assert size(b) == size(L)
-    @assert size(L) == size(σ)
+    @assert size(a) == size(b) == size(L) == size(σ)
     @assert f0 > 0
     @assert v0 > 0
     @assert η > 0
@@ -30,6 +28,9 @@ end
     γ::T
     n::I
     dϵ₀::U
+
+    @assert length(dϵ₀) == 6
+    @assert length(γ) == length(n)
 end
 
 const _field_names = Dict(
