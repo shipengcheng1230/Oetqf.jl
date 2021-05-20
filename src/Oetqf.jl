@@ -25,7 +25,7 @@ foreach(x -> include(joinpath(BEM_DIR, x)), BEM_SRC)
 export
     gen_mesh, gen_gmsh_mesh,
     stress_greens_function, StrikeSlip,
-    RateStateQuasiDynamicProperty,
+    RateStateQuasiDynamicProperty, PowerLawViscosityProperty,
     assemble,
     wsolve
 

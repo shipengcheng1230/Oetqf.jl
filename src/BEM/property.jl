@@ -5,6 +5,7 @@ abstract type StateEvolutionLaw end
 struct DieterichStateLaw <: StateEvolutionLaw end
 
 abstract type AbstractProperty end
+abstract type ViscosityProperty <: AbstractProperty end
 
 @with_kw struct RateStateQuasiDynamicProperty{T<:Real, U<:AbstractVecOrMat} <: AbstractProperty
     a::U # contrib from velocity
@@ -25,9 +26,15 @@ abstract type AbstractProperty end
     @assert vpl > 0
 end
 
+@with_kw struct PowerLawViscosityProperty{T, I, U} <: ViscosityProperty
+    γ::T
+    n::I
+    dϵ₀::U
+end
 
 const prop_field_names = Dict(
     :RateStateQuasiDynamicProperty => ("a", "b", "L", "σ", "η", "vpl", "f0", "v0"),
+    :PowerLawViscosityProperty => ("γ", "n", "dϵ₀"),
 )
 
 for (nn, fn) in prop_field_names

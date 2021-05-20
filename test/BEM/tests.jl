@@ -46,7 +46,7 @@ end
     for l = 1: mf.nξ, k = 1: mf.nx, j = 1: mf.nξ, i = 1: mf.nx
         gf3[i,j,k,l] = gf2[abs(i-k)+1,j,l]
     end
-    alloc = gen_alloc(mf.nx, mf.nξ)
+    alloc = gen_alloc(Val(:BEMFault), mf.nx, mf.nξ)
     v = rand(mf.nx, mf.nξ)
     vpl = 0.1
     relv = v .- vpl
@@ -109,4 +109,32 @@ end
         x = Array(VectorOfArray([sol.u[i].x[m] for i in 1: stride: length(sol.t)]))
         @test h5read(tmp, ustrs[m]) == x
     end
+end
+
+@testset "Viscoelastic assemble" begin
+    mf = gen_mesh(Val(:RectOkada), 100.0, 100.0, 10.0, 20.0, 90.0)
+    temp = tempname() * ".msh"
+    gen_gmsh_mesh(Val(:BEMHex8Mesh), -100.0, -50.0, -20.0, 200.0, 100.0, -30.0, 2, 3, 4; output=temp)
+    ma = gen_mesh(Val(:BEMHex8Mesh), temp)
+
+    nx = mf.nx
+    nξ = mf.nξ
+    ne = length(ma.cx)
+    λ = μ = 1.0
+    gf11 = stress_greens_function(mf, λ, μ)
+    gf12 = stress_greens_function(mf, ma, λ, μ)
+    gf21 = stress_greens_function(ma, mf, λ, μ)
+    gf22 = stress_greens_function(ma, λ, μ)
+
+    v0 = rand(nx, nξ)
+    θ0 = rand(nx, nξ)
+    ϵ0 = rand(ne, 6)
+    σ0 = rand(ne, 6)
+    δ0 = rand(nx, nξ)
+    u0 = ArrayPartition(v0, θ0, ϵ0, σ0, δ0)
+    pf = RateStateQuasiDynamicProperty([rand(nx, nξ) for _ in 1: 4]..., rand(4)...)
+    pa = PowerLawViscosityProperty(rand(ne), 3 * ones(Int, ne), rand(6))
+    prob = assemble(gf11, gf12, gf21, gf22, pf, pa, u0, (0.0, 1.0))
+    du = similar(u0)
+    @test_nowarn @inferred prob.f(du, u0, prob.p, 1.0)
 end
