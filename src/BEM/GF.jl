@@ -64,7 +64,7 @@ function stress_greens_function(
     mf::RectOkadaMesh, ma::BEMHex8Mesh,
     λ::T, μ::T;
     ftype::FaultType=StrikeSlip(),
-    qtype::String="Gauss1",
+    qtype::Union{String, Tuple{AbstractVecOrMat, AbstractVector}}="Gauss1",
     nrept::Integer=2, buffer_ratio::Real=0,
     ) where {T}
 
@@ -75,8 +75,7 @@ function stress_greens_function(
     lrept = (buffer_ratio + one(T)) * (mf.Δx * mf.nx)
     α = (λ + μ) / (λ + 2μ)
     ud = unit_dislocation(ftype)
-    localCoords, weights = quadrature(5, qtype) # 5 denotes Hex8
-    weights ./= sum(weights)
+    localCoords, weights = get_quadrature(qtype)
 
     st = zeros(T, 6nElem, nDisl)
     @inbounds @threads for j ∈ 1: nDisl # source fault patch
@@ -152,15 +151,14 @@ end
 function stress_greens_function(
     mesh::BEMHex8Mesh,
     λ::T, μ::T;
-    qtype::String="Gauss1",
+    qtype::Union{String, Tuple{AbstractVecOrMat, AbstractVector}}="Gauss1",
+    checkeigvals::Bool=true,
     ) where {T}
 
     nElem = length(mesh.cx)
     st = zeros(T, 6nElem, 6nElem)
     ν = λ / 2 / (λ + μ)
-
-    localCoords, weights = quadrature(5, qtype) # 5 denotes Hex8
-    weights ./= sum(weights)
+    localCoords, weights = get_quadrature(qtype)
 
     for p ∈ 1:6 # xx, xy, xz, yy, yz, zz
         epsv = zeros(T, 6)
@@ -192,11 +190,27 @@ function stress_greens_function(
             end
         end
     end
+    if checkeigvals
+        maxrλ = maximum(real, eigvals(st))
+        @printf "Maximum real part of eigval is: %.4f\n" maxrλ
+    end
     return st
 end
 
-function quadrature(etype::Integer, qtype::String)
+function gmsh_quadrature(etype::Integer, qtype::String)
     @gmsh_do begin
         return gmsh.model.mesh.getIntegrationPoints(etype, qtype)
     end
+end
+
+function get_quadrature(qtype::String)
+    # only for Hex8
+    localCoords, weights = gmsh_quadrature(5, qtype)
+    weights ./= sum(weights)
+    (localCoords, weights)
+end
+
+function get_quadrature(qtype::Tuple{AbstractVecOrMat, AbstractVector})
+    @assert length(qtype[1]) == 3 * length(qtype[2]) "Wrong format of quadrature!"
+    qtype
 end
