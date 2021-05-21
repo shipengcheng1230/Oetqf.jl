@@ -16,9 +16,9 @@ function stress_greens_function(mesh::RectOkadaMesh, λ::T, μ::T;
     α = (λ + μ) / (λ + 2μ)
 
     st = Array{T,3}(undef, mesh.nx, mesh.nξ, mesh.nξ)
-    @inbounds @threads for l ∈ 1:mesh.nξ
+    @inbounds @threads for l ∈ eachindex(mesh.ξ)
         u = Vector{T}(undef, 12)
-        for j ∈ 1:mesh.nξ, i ∈ 1:mesh.nx
+        for j ∈ eachindex(mesh.ξ), i ∈ eachindex(mesh.x)
             fill!(u, zero(T))
             for p ∈ -nrept:nrept
                 u .+= dc3d(
@@ -37,7 +37,7 @@ function stress_greens_function(mesh::RectOkadaMesh, λ::T, μ::T;
         x1 = Vector{T}(undef, 2mesh.nx - 1)
         p1 = plan_rfft(x1, flags=fftw_flags)
         st_dft = Array{Complex{T},3}(undef, mesh.nx, mesh.nξ, mesh.nξ)
-        for l ∈ 1:mesh.nξ, j ∈ 1:mesh.nξ
+        for l ∈ eachindex(mesh.ξ), j ∈ eachindex(mesh.ξ)
             # toeplitz matrices
             st_dft[:,j,l] .= p1 * [st[:,j,l]; reverse(st[2:end,j,l])]
         end
@@ -78,10 +78,10 @@ function stress_greens_function(
     localCoords, weights = get_quadrature(qtype)
 
     st = zeros(T, 6nElem, nDisl)
-    @inbounds @threads for j ∈ 1: nDisl # source fault patch
+    @inbounds @threads for j ∈ axes(st, 2) # source fault patch
         u = Vector{T}(undef, 12)
         q = i2s[j]
-        for i ∈ 1: nElem # receiver mantle volume
+        for i ∈ eachindex(ma.cx) # receiver mantle volume
             for w ∈ eachindex(weights)
                 lx = localCoords[3w - 2]
                 ly = localCoords[3w - 1]
@@ -128,10 +128,10 @@ function stress_greens_function(
         epsv = zeros(T, 6)
         epsv[p] = one(T)
 
-        @inbounds @threads for j ∈ 1: nElem # source mantle volume
+        @inbounds @threads for j ∈ eachindex(ma.cx) # source mantle volume
             temp = Vector{T}(undef, 6)
             jcol = (p - 1) * nElem + j
-            for i ∈ 1: nDisl # receiver fault patch
+            for i ∈ axes(st, 1) # receiver fault patch
                 q = i2s[i]
                 stress_vol_hex8!(temp,
                     mf.x[q[1]], mf.y[q[2]], mf.z[q[2]], # receiver
@@ -164,10 +164,10 @@ function stress_greens_function(
         epsv = zeros(T, 6)
         epsv[p] = one(T)
 
-        @threads for i ∈ 1:nElem # source
+        @threads for i ∈ eachindex(mesh.cx) # source
             temp = Vector{T}(undef, 6)
             icol = (p - 1) * nElem + i
-            for j ∈ 1: nElem # receiver
+            for j ∈ eachindex(mesh.cx) # receiver
                 @fastmath @inbounds for q ∈ eachindex(weights)
                     lx = localCoords[3q - 2]
                     ly = localCoords[3q - 1]
