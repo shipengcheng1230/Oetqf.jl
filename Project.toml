@@ -21,6 +21,7 @@ Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 Strided = "5e0ebb24-38b0-5f93-81fe-25c709ecae67"
 
 [compat]
+BSON = "0.3"
 DiffEqCallbacks = "2.16"
 FFTW = "1.4"
 GeoGreensFunctions = "0.1"
