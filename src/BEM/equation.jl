@@ -35,7 +35,7 @@ end
 @inline function relative_velocity!(alloc::TractionRateAllocFFTConv, vpl::T, v::AbstractMatrix{T}) where T
     # `@avxt` incurs strong overhead
     @inbounds @fastmath @threads for j ∈ axes(v, 2)
-        for i ∈ axes(v, 1)
+        @simd for i ∈ axes(v, 1)
             alloc.relv[i,j] = v[i,j] - vpl # there are zero paddings in `alloc.relv`
             alloc.relvnp[i,j] = alloc.relv[i,j] # copy-paste, useful for `LinearAlgebra.BLAS`
         end
@@ -49,15 +49,14 @@ end
     # I don't know if there is a better way to factorize the gemv! here.
     @inbounds @fastmath @threads for j ∈ axes(gf, 2)
         for l ∈ axes(gf, 3)
-            for i ∈ axes(gf, 1)
+            @simd for i ∈ axes(gf, 1)
                 alloc.dτ_dt_dft[i,j] += gf[i,j,l] * alloc.relv_dft[i,l]
             end
         end
     end
-
     ldiv!(alloc.dτ_dt_buffer, alloc.pf, alloc.dτ_dt_dft)
     @inbounds @fastmath @threads for j ∈ axes(alloc.dτ_dt, 2)
-        for i ∈ axes(alloc.dτ_dt, 1)
+        @simd for i ∈ axes(alloc.dτ_dt, 1)
             alloc.dτ_dt[i,j] = alloc.dτ_dt_buffer[i,j]
         end
     end
