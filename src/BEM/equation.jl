@@ -159,7 +159,7 @@ end
 
     # @avxt incurs strong overhead
     @inbounds @threads for i ∈ eachindex(v)
-        ψ1 = exp((p.f0 + p.b[i] * log(p.v0 * θ[i] / p.L[i])) / p.a[i]) / 2p.v0
+        ψ1 = exp((p.f0 + p.b[i] * log(p.v0 * min(zero(eltype(θ)), θ[i]) / p.L[i])) / p.a[i]) / 2p.v0
         ψ2 = p.σ[i] * ψ1 / hypot(1, v[i] * ψ1)
         dμ_dv = p.a[i] * ψ2
         dμ_dθ = p.b[i] / θ[i] * v[i] * ψ2
