@@ -164,11 +164,11 @@ function stress_greens_function(
         epsv = zeros(T, 6)
         epsv[p] = one(T)
 
-        @threads for i ∈ eachindex(mesh.cx) # source
+        @inbounds @threads for i ∈ eachindex(mesh.cx) # source
             temp = Vector{T}(undef, 6)
             icol = (p - 1) * nElem + i
             for j ∈ eachindex(mesh.cx) # receiver
-                @fastmath @inbounds for q ∈ eachindex(weights)
+                for q ∈ eachindex(weights)
                     lx = localCoords[3q - 2]
                     ly = localCoords[3q - 1]
                     lz = localCoords[3q]
@@ -183,7 +183,7 @@ function stress_greens_function(
                         epsv[1], epsv[2], epsv[3], epsv[4], epsv[5], epsv[6],
                         μ, ν,
                     )
-                    @simd for k ∈ 1:6
+                    for k ∈ 1:6
                         st[(k - 1) * nElem + j, icol] += temp[k] * weights[q]
                     end
                 end

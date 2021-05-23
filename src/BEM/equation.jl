@@ -34,8 +34,8 @@ end
 # ode parts
 @inline function relative_velocity!(alloc::TractionRateAllocFFTConv, vpl::T, v::AbstractMatrix{T}) where T
     # `@avxt` incurs strong overhead
-    @inbounds @fastmath @threads for j ∈ axes(v, 2)
-        @simd for i ∈ axes(v, 1)
+    @inbounds @threads for j ∈ axes(v, 2)
+        for i ∈ axes(v, 1)
             alloc.relv[i,j] = v[i,j] - vpl # there are zero paddings in `alloc.relv`
             alloc.relvnp[i,j] = alloc.relv[i,j] # copy-paste, useful for `LinearAlgebra.BLAS`
         end
@@ -47,16 +47,16 @@ end
     fill!(alloc.dτ_dt_dft, zero(T))
     # `@avxt` does not perform well
     # I don't know if there is a better way to factorize the gemv! here.
-    @inbounds @fastmath @threads for j ∈ axes(gf, 2)
+    @inbounds @threads for j ∈ axes(gf, 2)
         for l ∈ axes(gf, 3)
-            @simd for i ∈ axes(gf, 1)
+            for i ∈ axes(gf, 1)
                 alloc.dτ_dt_dft[i,j] += gf[i,j,l] * alloc.relv_dft[i,l]
             end
         end
     end
     ldiv!(alloc.dτ_dt_buffer, alloc.pf, alloc.dτ_dt_dft)
-    @inbounds @fastmath @threads for j ∈ axes(alloc.dτ_dt, 2)
-        @simd for i ∈ axes(alloc.dτ_dt, 1)
+    @inbounds @threads for j ∈ axes(alloc.dτ_dt, 2)
+        for i ∈ axes(alloc.dτ_dt, 1)
             alloc.dτ_dt[i,j] = alloc.dτ_dt_buffer[i,j]
         end
     end
@@ -132,7 +132,7 @@ end
 
 @inline function update_strain_rate!(p::ViscosityProperty, σ::T, dϵ::T) where T
     # `@avxt` not applicable yet
-    @inbounds @fastmath @threads for i ∈ axes(σ, 1)
+    @inbounds @threads for i ∈ axes(σ, 1)
         σkk = (σ[i,1] + σ[i,4] + σ[i,6]) / 3
         σxx = σ[i,1] - σkk
         σyy = σ[i,4] - σkk
@@ -158,7 +158,7 @@ end
     v::T, θ::T, dv::T, dθ::T, dδ::T, se::StateEvolutionLaw) where T
 
     # @avxt incurs strong overhead
-    @inbounds @fastmath @threads for i ∈ eachindex(v)
+    @inbounds @threads for i ∈ eachindex(v)
         ψ1 = exp((p.f0 + p.b[i] * log(p.v0 * θ[i] / p.L[i])) / p.a[i]) / 2p.v0
         ψ2 = p.σ[i] * ψ1 / hypot(1, v[i] * ψ1)
         dμ_dv = p.a[i] * ψ2
@@ -170,7 +170,7 @@ end
 end
 
 # evolution law
-@inline dθ_dt(::DieterichStateLaw, v::T, θ::T, L::T) where T = @fastmath 1 - v * θ / L
+@inline dθ_dt(::DieterichStateLaw, v::T, θ::T, L::T) where T = 1 - v * θ / L
 
 # viscosity law
-@inline dϵ_dt(p::PowerLawViscosityProperty, σ::T, τⁿ::T, i::I) where {T, I} = @fastmath p.γ[i] * σ * τⁿ
+@inline dϵ_dt(p::PowerLawViscosityProperty, σ::T, τⁿ::T, i::I) where {T, I} = p.γ[i] * σ * τⁿ
