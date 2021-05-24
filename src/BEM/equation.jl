@@ -15,9 +15,9 @@ struct StressRateAllocMatrix{T} <: ODEAllocation
     reldϵ::T
 end
 
-function gen_alloc(::Val{:BEMFault}, nx::I, nξ::I; T=Float64, fftw_flags=FFTW.MEASURE) where {I<:Integer}
+function gen_alloc(::Val{:BEMFault}, nx::I, nξ::I; T=Float64, fftw_flags::UInt32=FFTW.PATIENT) where {I<:Integer}
     x1 = Matrix{T}(undef, 2 * nx - 1, nξ)
-    p1 = plan_rfft(x1, 1, flags=fftw_flags)
+    p1 = plan_rfft(x1, 1; flags=fftw_flags)
 
     return TractionRateAllocFFTConv(
         Matrix{T}(undef, nx, nξ),

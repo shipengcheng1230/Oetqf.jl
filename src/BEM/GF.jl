@@ -7,7 +7,7 @@ struct StrikeSlip <: FaultType end
 
 function stress_greens_function(mesh::RectOkadaMesh, λ::T, μ::T;
     ftype::FaultType=StrikeSlip(), fourier::Bool=true,
-    nrept::Integer=2, buffer_ratio::Real=0, fftw_flags::UInt32=FFTW.MEASURE
+    nrept::Integer=2, buffer_ratio::Real=0, fftw_flags::UInt32=FFTW.PATIENT
     ) where {T <: Real}
 
     @assert buffer_ratio ≥ 0 "Argument `buffer_ratio` must be ≥ 0."
