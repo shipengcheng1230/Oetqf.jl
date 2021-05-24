@@ -36,8 +36,8 @@ end
     # `@avxt` incurs strong overhead
     @inbounds @threads for j ∈ axes(v, 2)
         for i ∈ axes(v, 1)
-            alloc.relv[i,j] = v[i,j] - vpl # there are zero paddings in `alloc.relv`
-            alloc.relvnp[i,j] = alloc.relv[i,j] # copy-paste, useful for `LinearAlgebra.BLAS`
+            alloc.relvnp[i,j] = v[i,j] - vpl # no zero paddings, used for `LinearAlgebra.BLAS`
+            alloc.relv[i,j] = alloc.relvnp[i,j] # there exists zero paddings in `alloc.relv`
         end
     end
 end
@@ -139,12 +139,12 @@ end
         σzz = σ[i,6] - σkk
         σxy, σxz, σyz = σ[i,2], σ[i,3], σ[i,5]
         τⁿ = (sqrt(σxx^2 + σyy^2 + σzz^2 + 2 * (σxy^2 + σxz^2 + σyz^2))) ^ p.n[i]
-        dϵ[i,1] = dϵ_dt(p, σxx, τⁿ, i)
-        dϵ[i,2] = dϵ_dt(p, σxy, τⁿ, i)
-        dϵ[i,3] = dϵ_dt(p, σxz, τⁿ, i)
-        dϵ[i,4] = dϵ_dt(p, σyy, τⁿ, i)
-        dϵ[i,5] = dϵ_dt(p, σyz, τⁿ, i)
-        dϵ[i,6] = dϵ_dt(p, σzz, τⁿ, i)
+        dϵ[i,1] = dϵ_dt(p.γ[i], σxx, τⁿ)
+        dϵ[i,2] = dϵ_dt(p.γ[i], σxy, τⁿ)
+        dϵ[i,3] = dϵ_dt(p.γ[i], σxz, τⁿ)
+        dϵ[i,4] = dϵ_dt(p.γ[i], σyy, τⁿ)
+        dϵ[i,5] = dϵ_dt(p.γ[i], σyz, τⁿ)
+        dϵ[i,6] = dϵ_dt(p.γ[i], σzz, τⁿ)
     end
 end
 
@@ -173,4 +173,4 @@ end
 @inline dθ_dt(::DieterichStateLaw, v::T, θ::T, L::T) where T = 1 - v * θ / L
 
 # viscosity law
-@inline dϵ_dt(p::PowerLawViscosityProperty, σ::T, τⁿ::T, i::I) where {T, I} = p.γ[i] * σ * τⁿ
+@inline dϵ_dt(γ::T, σ::T, τⁿ::T) where T = γ * σ * τⁿ
