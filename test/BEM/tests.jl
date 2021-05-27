@@ -22,7 +22,7 @@ using TensorOperations
         me = gen_mesh(Val(:BEMHex8Mesh), file)
 
         for (x, tx) in zip([me.cx, me.cy, me.cz], [nx, ny, nz])
-            @test length(unique(x -> round(x; digits=2), x)) == tx
+            @test length(unique(x -> round(x; digits=6), x)) == tx
         end
         @test me.cx ≈ me.qx
         @test (me.cy .- me.Δy / 2) ≈ me.qy

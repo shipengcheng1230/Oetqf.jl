@@ -17,17 +17,18 @@ function stress_greens_function(mesh::RectOkadaMesh, λ::T, μ::T;
 
     st = Array{T,3}(undef, mesh.nx, mesh.nξ, mesh.nξ)
     @inbounds @threads for l ∈ eachindex(mesh.ξ)
+        cache = GeoGreensFunctions.dc3d_cache(T)
         u = Vector{T}(undef, 12)
         for j ∈ eachindex(mesh.ξ), i ∈ eachindex(mesh.x)
             fill!(u, zero(T))
-            for p ∈ -nrept:nrept
-                u .+= dc3d(
-                    mesh.x[i], mesh.y[j], mesh.z[j],
+            for p ∈ -nrept: nrept
+                jump = p * lrept
+                dc3d(mesh.x[i], mesh.y[j], mesh.z[j],
                     α, mesh.dep, mesh.dip,
-                    mesh.ax[1] .+ p * lrept,
-                    mesh.aξ[l],
-                    ud,
-                    )
+                    mesh.ax[1][1] + jump, mesh.ax[1][2] + jump,
+                    mesh.aξ[l][1], mesh.aξ[l][2],
+                    ud[1], ud[2], ud[3], cache)
+                u .+= cache[1]
             end
             st[i,j,l] = shear_traction_dc3d(ftype, u, λ, μ, mesh.dip)
         end
@@ -46,7 +47,7 @@ function stress_greens_function(mesh::RectOkadaMesh, λ::T, μ::T;
     return st
 end
 
-@inline unit_dislocation(::StrikeSlip, T=Float64) = [one(T), zero(T), zero(T)]
+@inline unit_dislocation(::StrikeSlip, T=Float64) = (one(T), zero(T), zero(T))
 
 @inline function shear_traction_dc3d(::StrikeSlip, u::AbstractVector, λ::T, μ::T, dip::T) where T
     σxy = μ * (u[5] + u[7])
@@ -79,6 +80,7 @@ function stress_greens_function(
 
     st = zeros(T, 6nElem, nDisl)
     @inbounds @threads for j ∈ axes(st, 2) # source fault patch
+        cache = GeoGreensFunctions.dc3d_cache(T)
         u = Vector{T}(undef, 12)
         q = i2s[j]
         for i ∈ eachindex(ma.cx) # receiver mantle volume
@@ -91,13 +93,13 @@ function stress_greens_function(
                 rz = ma.cz[i] + lz * ma.Δz[i] / 2
                 fill!(u, zero(T))
                 for p ∈ -nrept: nrept
-                    u .+= dc3d(
-                        rx, ry, rz,
+                    jump = p * lrept
+                    dc3d(rx, ry, rz,
                         α, mf.dep, mf.dip,
-                        mf.ax[q[1]] .+ p * lrept,
-                        mf.aξ[q[2]],
-                        ud,
-                        )
+                        mf.ax[q[1]][1] + jump, mf.ax[q[1]][2] + jump,
+                        mf.aξ[q[2]][1], mf.aξ[q[2]][2],
+                        ud[1], ud[2], ud[3], cache)
+                    u .+= cache[1]
                 end
                 λϵkk = λ * (u[4] + u[8] + u[12])
                 st[i, j]          += weights[w] * (λϵkk + 2μ * u[4])   # σxx
@@ -136,11 +138,10 @@ function stress_greens_function(
                 stress_vol_hex8!(temp,
                     mf.x[q[1]], mf.y[q[2]], mf.z[q[2]], # receiver
                     ma.qx[j], ma.qy[j], ma.qz[j], # source
-                    ma.Δy[j], ma.Δx[j], ma.Δz[j], # L-T-W <=> y-x-z
+                    ma.Δx[j], ma.Δy[j], ma.Δz[j], # T-L-W <=> x-y-z
                     zero(T), # no rotation
                     epsv[1], epsv[2], epsv[3], epsv[4], epsv[5], epsv[6],
-                    μ, ν,
-                )
+                    μ, ν)
                 st[i, jcol] = shear_traction_vol(ftype, temp, mf.dip)
             end
         end
@@ -178,11 +179,10 @@ function stress_greens_function(
                     stress_vol_hex8!(temp,
                         rx, ry, rz, # receiver
                         mesh.qx[i], mesh.qy[i], mesh.qz[i], # source
-                        mesh.Δy[i], mesh.Δx[i], mesh.Δz[i], # L-T-W <=> y-x-z
+                        mesh.Δx[i], mesh.Δy[i], mesh.Δz[i], # T-L-W <=> x-y-z
                         zero(T), # no rotation
                         epsv[1], epsv[2], epsv[3], epsv[4], epsv[5], epsv[6],
-                        μ, ν,
-                    )
+                        μ, ν)
                     for k ∈ 1:6
                         st[(k - 1) * nElem + j, icol] += temp[k] * weights[q]
                     end
@@ -197,20 +197,22 @@ function stress_greens_function(
     return st
 end
 
-function gmsh_quadrature(etype::Integer, qtype::String)
+const QuadratureType = Tuple{AbstractVecOrMat, AbstractVector}
+
+function gmsh_quadrature(etype::Integer, qtype::String)::QuadratureType
     @gmsh_do begin
         return gmsh.model.mesh.getIntegrationPoints(etype, qtype)
     end
 end
 
-function get_quadrature(qtype::String)
+function get_quadrature(qtype::String)::QuadratureType
     # only for Hex8
     localCoords, weights = gmsh_quadrature(5, qtype)
     weights ./= sum(weights)
     (localCoords, weights)
 end
 
-function get_quadrature(qtype::Tuple{AbstractVecOrMat, AbstractVector})
+function get_quadrature(qtype::QuadratureType)
     @assert length(qtype[1]) == 3 * length(qtype[2]) "Wrong format of quadrature!"
     qtype
 end

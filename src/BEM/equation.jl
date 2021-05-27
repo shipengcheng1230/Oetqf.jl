@@ -46,7 +46,7 @@ end
     mul!(alloc.relv_dft, alloc.pf, alloc.relv)
     fill!(alloc.dτ_dt_dft, zero(T))
     # `@avxt` does not perform well
-    # I don't know if there is a better way to factorize the gemv! here.
+    # I don't know if there is a better way to factorize the gemv! embeded in subspace here.
     @inbounds @threads for j ∈ axes(gf, 2)
         for l ∈ axes(gf, 3)
             for i ∈ axes(gf, 1)
@@ -93,10 +93,10 @@ end
 function ode(du::ArrayPartition{T}, u::ArrayPartition{T}, p::RateStateQuasiDynamicProperty, t::U,
     alloc::TractionRateAllocFFTConv, gf::AbstractArray, se::StateEvolutionLaw,
     ) where {T, U}
+
     v, θ, _ = u.x
     dv, dθ, dδ = du.x
-    # clamp!(θ, zero(T), Inf)
-    # clamp!(v, zero(T), Inf)
+
     relative_velocity!(alloc, p.vpl, v)
     dτ_dt!(gf, alloc)
     update_fault!(p, alloc, v, θ, dv, dθ, dδ, se)
@@ -118,8 +118,6 @@ function ode(du::ArrayPartition{T}, u::ArrayPartition{T},
     dv, dθ, dϵ, dσ, dδ = du.x
     pf, pa = p
 
-    # clamp!(θ, zero(T), Inf)
-    # clamp!(v, zero(T), Inf)
     relative_velocity!(alloc1, pf.vpl, v)
     update_strain_rate!(pa, σ, dϵ)
     relative_strain_rate!(alloc2, dϵ, pa.dϵ₀)
