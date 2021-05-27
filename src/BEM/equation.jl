@@ -33,9 +33,8 @@ end
 
 # ode parts
 @inline function relative_velocity!(alloc::TractionRateAllocFFTConv, vpl::T, v::AbstractMatrix{T}) where T
-    # `@avxt` incurs strong overhead
-    @inbounds @threads for j ∈ axes(v, 2)
-        for i ∈ axes(v, 1)
+    @inbounds @batch for j ∈ axes(v, 2)
+        @simd for i ∈ axes(v, 1)
             alloc.relvnp[i,j] = v[i,j] - vpl # no zero paddings, used for `LinearAlgebra.BLAS`
             alloc.relv[i,j] = alloc.relvnp[i,j] # there exists zero paddings in `alloc.relv`
         end
@@ -45,18 +44,17 @@ end
 @inline function dτ_dt!(gf::AbstractArray{T, 3}, alloc::TractionRateAllocFFTConv) where {T<:Complex}
     mul!(alloc.relv_dft, alloc.pf, alloc.relv)
     fill!(alloc.dτ_dt_dft, zero(T))
-    # `@avxt` does not perform well
-    # I don't know if there is a better way to factorize the gemv! embeded in subspace here.
-    @inbounds @threads for j ∈ axes(gf, 2)
+    # potential simplification by using https://github.com/mcabbott/Tullio.jl
+    @inbounds @batch for j ∈ axes(gf, 2)
         for l ∈ axes(gf, 3)
-            for i ∈ axes(gf, 1)
+            @simd for i ∈ axes(gf, 1)
                 alloc.dτ_dt_dft[i,j] += gf[i,j,l] * alloc.relv_dft[i,l]
             end
         end
     end
     ldiv!(alloc.dτ_dt_buffer, alloc.pf, alloc.dτ_dt_dft)
-    @inbounds @threads for j ∈ axes(alloc.dτ_dt, 2)
-        for i ∈ axes(alloc.dτ_dt, 1)
+    @inbounds @batch for j ∈ axes(alloc.dτ_dt, 2)
+        @simd for i ∈ axes(alloc.dτ_dt, 1)
             alloc.dτ_dt[i,j] = alloc.dτ_dt_buffer[i,j]
         end
     end
@@ -70,8 +68,7 @@ function assemble(
     se::StateEvolutionLaw=DieterichStateLaw(), kwargs...)
 
     alloc = gen_alloc(Val(:BEMFault), size(u0.x[1], 1), size(u0.x[1], 2); kwargs...)
-    f! = (du, u, p, t) -> ode(du, u, p, t, alloc, gf, se)
-    return ODEProblem(f!, u0, tspan, p)
+    return ODEProblem{true}(ode, u0, tspan, (p, alloc, gf, se))
 end
 
 function assemble(
@@ -84,39 +81,29 @@ function assemble(
     u0::ArrayPartition, tspan::NTuple{2};
     se::StateEvolutionLaw=DieterichStateLaw(), kwargs...)
 
-    alloc1 = gen_alloc(Val(:BEMFault), size(u0.x[1])...; kwargs...)
-    alloc2 = gen_alloc(Val(:BEMMantle), size(u0.x[3], 1))
-    f! = (du, u, p, t) -> ode(du, u, p, t, alloc1, alloc2, gf₁₁, gf₁₂, gf₂₁, gf₂₂, se)
-    return ODEProblem(f!, u0, tspan, (pf, pa))
+    alloc₁ = gen_alloc(Val(:BEMFault), size(u0.x[1])...; kwargs...)
+    alloc₂ = gen_alloc(Val(:BEMMantle), size(u0.x[3], 1))
+    return ODEProblem{true}(ode, u0, tspan, (pf, pa, alloc₁, alloc₂, gf₁₁, gf₁₂, gf₂₁, gf₂₂, se))
 end
 
-function ode(du::ArrayPartition{T}, u::ArrayPartition{T}, p::RateStateQuasiDynamicProperty, t::U,
-    alloc::TractionRateAllocFFTConv, gf::AbstractArray, se::StateEvolutionLaw,
-    ) where {T, U}
+function ode(du::T, u::T, p::Tuple{P, AL, A, SE}, t::U
+    ) where {T, U, P<:AbstractProperty, AL<:ODEAllocation, A, SE<:StateEvolutionLaw}
 
     v, θ, _ = u.x
     dv, dθ, dδ = du.x
+    prop, alloc, gf, se = p
 
-    relative_velocity!(alloc, p.vpl, v)
+    relative_velocity!(alloc, prop.vpl, v)
     dτ_dt!(gf, alloc)
-    update_fault!(p, alloc, v, θ, dv, dθ, dδ, se)
+    update_fault!(prop, alloc, v, θ, dv, dθ, dδ, se)
 end
 
-function ode(du::ArrayPartition{T}, u::ArrayPartition{T},
-    p::Tuple{RateStateQuasiDynamicProperty, ViscosityProperty},
-    t::U,
-    alloc1::TractionRateAllocFFTConv,
-    alloc2::StressRateAllocMatrix,
-    gf₁₁::AbstractArray,
-    gf₁₂::AbstractMatrix,
-    gf₂₁::AbstractMatrix,
-    gf₂₂::AbstractMatrix,
-    se::StateEvolutionLaw,
-    ) where {T, U}
+function ode(du::T, u::T, p::Tuple{P1, P2, AL1, AL2, A, U, U, U, SE}, t::V
+    ) where {T, U, V, A, SE<:StateEvolutionLaw, P1<:AbstractProperty, P2<:AbstractProperty, AL1<:ODEAllocation, AL2<:ODEAllocation}
 
     v, θ, _, σ, _ = u.x
     dv, dθ, dϵ, dσ, dδ = du.x
-    pf, pa = p
+    pf, pa, alloc1, alloc2, gf₁₁, gf₁₂, gf₂₁, gf₂₂, se = p
 
     relative_velocity!(alloc1, pf.vpl, v)
     update_strain_rate!(pa, σ, dϵ)
@@ -129,8 +116,7 @@ function ode(du::ArrayPartition{T}, u::ArrayPartition{T},
 end
 
 @inline function update_strain_rate!(p::ViscosityProperty, σ::T, dϵ::T) where T
-    # `@avxt` not applicable yet
-    @inbounds @threads for i ∈ axes(σ, 1)
+    @inbounds @batch for i ∈ axes(σ, 1)
         σkk = (σ[i,1] + σ[i,4] + σ[i,6]) / 3
         σxx = σ[i,1] - σkk
         σyy = σ[i,4] - σkk
@@ -147,7 +133,11 @@ end
 end
 
 @inline function relative_strain_rate!(alloc::StressRateAllocMatrix, dϵ::AbstractMatrix, dϵ₀::AbstractVector)
-    @strided alloc.reldϵ .= dϵ .- dϵ₀'
+    @inbounds @batch for i ∈ axes(dϵ, 1)
+        @simd for j ∈ axes(dϵ, 2)
+            alloc.reldϵ[i,j] = dϵ[i,j] - dϵ₀[j]
+        end
+    end
 end
 
 # rate-and-state update
@@ -155,8 +145,7 @@ end
     p::RateStateQuasiDynamicProperty, alloc::TractionRateAllocFFTConv,
     v::T, θ::T, dv::T, dθ::T, dδ::T, se::StateEvolutionLaw) where T
 
-    # @avxt incurs strong overhead
-    @inbounds @threads for i ∈ eachindex(v)
+    @inbounds @batch for i ∈ eachindex(v)
         ψ1 = exp((p.f0 + p.b[i] * log(p.v0 * max(zero(eltype(θ)), θ[i]) / p.L[i])) / p.a[i]) / 2p.v0
         ψ2 = p.σ[i] * ψ1 / hypot(1, v[i] * ψ1)
         dμ_dv = p.a[i] * ψ2
