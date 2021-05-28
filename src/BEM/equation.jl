@@ -33,8 +33,8 @@ end
 
 # ode parts
 @inline function relative_velocity!(alloc::TractionRateAllocFFTConv, vpl::T, v::AbstractMatrix{T}) where T
-    @inbounds @batch for j ∈ axes(v, 2)
-        @simd for i ∈ axes(v, 1)
+    @batch for j ∈ axes(v, 2)
+        for i ∈ axes(v, 1)
             alloc.relvnp[i,j] = v[i,j] - vpl # no zero paddings, used for `LinearAlgebra.BLAS`
             alloc.relv[i,j] = alloc.relvnp[i,j] # there exists zero paddings in `alloc.relv`
         end
@@ -45,16 +45,16 @@ end
     mul!(alloc.relv_dft, alloc.pf, alloc.relv)
     fill!(alloc.dτ_dt_dft, zero(T))
     # potential simplification by using https://github.com/mcabbott/Tullio.jl
-    @inbounds @batch for j ∈ axes(gf, 2)
+    @batch for j ∈ axes(gf, 2)
         for l ∈ axes(gf, 3)
-            @simd for i ∈ axes(gf, 1)
+            for i ∈ axes(gf, 1)
                 alloc.dτ_dt_dft[i,j] += gf[i,j,l] * alloc.relv_dft[i,l]
             end
         end
     end
     ldiv!(alloc.dτ_dt_buffer, alloc.pf, alloc.dτ_dt_dft)
-    @inbounds @batch for j ∈ axes(alloc.dτ_dt, 2)
-        @simd for i ∈ axes(alloc.dτ_dt, 1)
+    @batch for j ∈ axes(alloc.dτ_dt, 2)
+        for i ∈ axes(alloc.dτ_dt, 1)
             alloc.dτ_dt[i,j] = alloc.dτ_dt_buffer[i,j]
         end
     end
@@ -116,7 +116,7 @@ function ode(du::T, u::T, p::Tuple{P1, P2, AL1, AL2, A, U, U, U, SE}, t::V
 end
 
 @inline function update_strain_rate!(p::ViscosityProperty, σ::T, dϵ::T) where T
-    @inbounds @batch for i ∈ axes(σ, 1)
+    @batch for i ∈ axes(σ, 1)
         σkk = (σ[i,1] + σ[i,4] + σ[i,6]) / 3
         σxx = σ[i,1] - σkk
         σyy = σ[i,4] - σkk
@@ -133,8 +133,8 @@ end
 end
 
 @inline function relative_strain_rate!(alloc::StressRateAllocMatrix, dϵ::AbstractMatrix, dϵ₀::AbstractVector)
-    @inbounds @batch for i ∈ axes(dϵ, 1)
-        @simd for j ∈ axes(dϵ, 2)
+    @batch for i ∈ axes(dϵ, 1)
+        for j ∈ axes(dϵ, 2)
             alloc.reldϵ[i,j] = dϵ[i,j] - dϵ₀[j]
         end
     end
@@ -145,7 +145,7 @@ end
     p::RateStateQuasiDynamicProperty, alloc::TractionRateAllocFFTConv,
     v::T, θ::T, dv::T, dθ::T, dδ::T, se::StateEvolutionLaw) where T
 
-    @inbounds @batch for i ∈ eachindex(v)
+    @batch for i ∈ eachindex(v)
         ψ1 = exp((p.f0 + p.b[i] * log(p.v0 * max(zero(eltype(θ)), θ[i]) / p.L[i])) / p.a[i]) / 2p.v0
         ψ2 = p.σ[i] * ψ1 / hypot(1, v[i] * ψ1)
         dμ_dv = p.a[i] * ψ2
