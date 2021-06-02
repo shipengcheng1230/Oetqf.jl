@@ -19,24 +19,31 @@ using MLStyle
 using Polyester
 using WriteVTK
 using Formatting
+using Preferences
+using LoopVectorization
 
 using Base.Threads
 
-include("io.jl")
+include("utils.jl")
+include("pref.jl")
 
-const BEM_DIR = joinpath(@__DIR__, "BEM")
-const BEM_SRC = ["mesh.jl", "GF.jl", "property.jl", "equation.jl"]
-foreach(x -> include(joinpath(BEM_DIR, x)), BEM_SRC)
+include("io.jl")
+export wsolve
+
+include("BEM/mesh.jl")
+export gen_mesh, gen_gmsh_mesh
+
+include("BEM/GF.jl")
+export stress_greens_function, StrikeSlip
+
+include("BEM/property.jl")
+export RateStateQuasiDynamicProperty, PowerLawViscosityProperty,
+       save_property, load_property
+
+include("BEM/equation.jl")
+export assemble
 
 include("vtk.jl")
-
-export
-    gen_mesh, gen_gmsh_mesh,
-    stress_greens_function, StrikeSlip,
-    RateStateQuasiDynamicProperty, PowerLawViscosityProperty,
-    assemble,
-    wsolve,
-    save_property, load_property,
-    gen_pvd, gen_vtk_grid
+export gen_pvd, gen_vtk_grid
 
 end # module

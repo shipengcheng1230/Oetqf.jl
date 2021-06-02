@@ -109,9 +109,9 @@ function ode(du::T, u::T, p::Tuple{P1, P2, AL1, AL2, A, U, U, U, SE}, t::V
     update_strain_rate!(pa, σ, dϵ)
     relative_strain_rate!(alloc2, dϵ, pa.dϵ₀)
     dτ_dt!(gf₁₁, alloc1) # fault - fault
-    mul!(vec(alloc1.dτ_dt), gf₂₁, vec(alloc2.reldϵ), true, true) # mantle - fault
-    mul!(vec(dσ), gf₁₂, vec(alloc1.relvnp)) # fault - mantle
-    mul!(vec(dσ), gf₂₂, vec(alloc2.reldϵ), true, true) # mantle - mantle
+    matvecmul!(vec(alloc1.dτ_dt), gf₂₁, vec(alloc2.reldϵ), true, true) # mantle - fault
+    matvecmul!(vec(dσ), gf₁₂, vec(alloc1.relvnp)) # fault - mantle
+    matvecmul!(vec(dσ), gf₂₂, vec(alloc2.reldϵ), true, true) # mantle - mantle
     update_fault!(pf, alloc1, v, θ, dv, dθ, dδ, se)
 end
 

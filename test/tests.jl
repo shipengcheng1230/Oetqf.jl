@@ -47,10 +47,23 @@ end
     gen_gmsh_mesh(Val(:BEMHex8Mesh), -50e3, -20e3, -10e3, 100e3, 40e3, -30e3, 3, 4, 5; output=mafile)
     ma = gen_mesh(Val(:BEMHex8Mesh), mafile)
     solh5 = tempname() * ".h5"
-    nt = 5
+    nt = rand(3: 7)
     h5write(solh5, "t", collect(1: nt))
     h5write(solh5, "x", rand(mf.nx, mf.nξ, nt))
     h5write(solh5, "y", rand(length(ma.cx), 6, nt))
     pvds = gen_pvd(mf, mafile, solh5, "t", ["x"], ["y"], 1: nt, tempname())
     @test length(pvds) == 3nt + 1
+end
+
+@testset "LoopVectorization GEMV" begin
+    a1 = rand(5, 5)
+    b1 = rand(5)
+    c1 = similar(b1)
+    a2 = copy(a1)
+    b2 = copy(b1)
+    c2 = similar(c1)
+    α, β = rand(), rand()
+    mul!(c1, a1, b1, α, β)
+    Oetqf.AmulB!(c2, a2, b2, α, β)
+    @test c1 ≈ c2
 end
