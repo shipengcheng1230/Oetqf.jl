@@ -33,7 +33,7 @@ function gen_vtk_grid(mesh::RectOkadaMesh)
     (xs, ys, zs)
 end
 
-gen_vtk_grid(mesh::RectOkadaMesh, output) = vtk_grid(output, gen_vtk_grid(t, mesh)...)
+gen_vtk_grid(mesh::RectOkadaMesh, output) = vtk_grid(output, gen_vtk_grid(mesh)...)
 
 function gen_pvd(mf::RectOkadaMesh, mafile, solh5, tstr, ufstrs, uastrs, steps, output;
     tscale=365*86400, mafiletype=Val(:BEMHex8Mesh))

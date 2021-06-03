@@ -46,6 +46,8 @@ end
     mafile = tempname() * ".msh"
     gen_gmsh_mesh(Val(:BEMHex8Mesh), -50e3, -20e3, -10e3, 100e3, 40e3, -30e3, 3, 4, 5; output=mafile)
     ma = gen_mesh(Val(:BEMHex8Mesh), mafile)
+    gen_vtk_grid(mf, tempname())
+    gen_vtk_grid(Val(:BEMHex8Mesh), mafile, tempname())
     solh5 = tempname() * ".h5"
     nt = rand(3: 7)
     h5write(solh5, "t", collect(1: nt))
@@ -53,6 +55,7 @@ end
     h5write(solh5, "y", rand(length(ma.cx), 6, nt))
     pvds = gen_pvd(mf, mafile, solh5, "t", ["x"], ["y"], 1: nt, tempname())
     @test length(pvds) == 3nt + 1
+
 end
 
 @testset "LoopVectorization GEMV" begin
