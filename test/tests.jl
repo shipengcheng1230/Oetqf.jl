@@ -55,18 +55,11 @@ end
     h5write(solh5, "y", rand(length(ma.cx), 6, nt))
     pvds = gen_pvd(mf, mafile, solh5, "t", ["x"], ["y"], 1: nt, tempname())
     @test length(pvds) == 3nt + 1
-
 end
 
-@testset "LoopVectorization GEMV" begin
-    a1 = rand(5, 5)
-    b1 = rand(5)
-    c1 = similar(b1)
-    a2 = copy(a1)
-    b2 = copy(b1)
-    c2 = similar(c1)
-    α, β = rand(), rand()
-    mul!(c1, a1, b1, α, β)
-    Oetqf.AmulB!(c2, a2, b2, α, β)
-    @test c1 ≈ c2
+@testset "GEMV backend setting" begin
+    @test Oetqf.get_matvecmul!() == "LinearAlgebra"
+    @test_logs (:info, "New backend Octavian set; restart your Julia session for this change to take effect!") Oetqf.set_matvecmul!("Octavian")
+    @test_logs (:info, "New backend LinearAlgebra set; restart your Julia session for this change to take effect!") Oetqf.set_matvecmul!("LinearAlgebra")
+    @test_throws ArgumentError Oetqf.set_matvecmul!("DummyMatVec")
 end

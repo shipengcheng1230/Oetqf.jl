@@ -20,11 +20,10 @@ using Polyester
 using WriteVTK
 using Formatting
 using Preferences
-using LoopVectorization
+using Octavian
 
 using Base.Threads
 
-include("utils.jl")
 include("pref.jl")
 
 include("io.jl")
