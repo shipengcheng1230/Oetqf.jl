@@ -122,13 +122,13 @@ end
         σyy = σ[i,4] - σkk
         σzz = σ[i,6] - σkk
         σxy, σxz, σyz = σ[i,2], σ[i,3], σ[i,5]
-        τⁿ = (sqrt(σxx^2 + σyy^2 + σzz^2 + 2 * (σxy^2 + σxz^2 + σyz^2))) ^ p.n[i]
-        dϵ[i,1] = dϵ_dt(p.γ[i], σxx, τⁿ)
-        dϵ[i,2] = dϵ_dt(p.γ[i], σxy, τⁿ)
-        dϵ[i,3] = dϵ_dt(p.γ[i], σxz, τⁿ)
-        dϵ[i,4] = dϵ_dt(p.γ[i], σyy, τⁿ)
-        dϵ[i,5] = dϵ_dt(p.γ[i], σyz, τⁿ)
-        dϵ[i,6] = dϵ_dt(p.γ[i], σzz, τⁿ)
+        τnorm = sqrt(σxx^2 + σyy^2 + σzz^2 + 2 * (σxy^2 + σxz^2 + σyz^2))
+        dϵ[i,1] = dϵ_dt(p, i, σxx, τnorm)
+        dϵ[i,2] = dϵ_dt(p, i, σxy, τnorm)
+        dϵ[i,3] = dϵ_dt(p, i, σxz, τnorm)
+        dϵ[i,4] = dϵ_dt(p, i, σyy, τnorm)
+        dϵ[i,5] = dϵ_dt(p, i, σyz, τnorm)
+        dϵ[i,6] = dϵ_dt(p, i, σzz, τnorm)
     end
 end
 
@@ -160,4 +160,11 @@ end
 @inline dθ_dt(::DieterichStateLaw, v::T, θ::T, L::T) where T = 1 - v * θ / L
 
 # viscosity law
-@inline dϵ_dt(γ::T, σ::T, τⁿ::T) where T = γ * σ * τⁿ
+@inline dϵ_dt(p::PowerLawViscosityProperty, i::Int, σ::T, τnorm::T) where T = p.γ[i] * σ * τnorm ^ p.n[i]
+@inline function dϵ_dt(p::CompositePowerLawViscosityProperty, i::Int, σ::T, τnorm::T) where T
+    ans = zero(T)
+    for pp ∈ p.piter
+        ans += dϵ_dt(pp, i, σ, τnorm)
+    end
+    ans
+end

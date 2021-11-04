@@ -36,7 +36,9 @@ include("BEM/GF.jl")
 export stress_greens_function, StrikeSlip
 
 include("BEM/property.jl")
-export RateStateQuasiDynamicProperty, PowerLawViscosityProperty,
+export RateStateQuasiDynamicProperty,
+       PowerLawViscosityProperty,
+       CompositePowerLawViscosityProperty,
        save_property, load_property
 
 include("BEM/equation.jl")

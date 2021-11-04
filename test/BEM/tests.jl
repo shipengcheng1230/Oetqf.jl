@@ -100,16 +100,36 @@ end
     nx = nξ = ne = 4
     p1 = RateStateQuasiDynamicProperty([rand(nx, nξ) for _ in 1: 4]..., rand(4)...)
     p2 = PowerLawViscosityProperty(rand(ne), 3 * ones(Int, ne), rand(6))
+    p3 = CompositePowerLawViscosityProperty([p2, p2], rand(6))
 
     ftmp = tempname()
     save_property(ftmp, p1)
     p1′ = load_property(ftmp, :RateStateQuasiDynamicProperty)
     save_property(ftmp, p2)
     p2′ = load_property(ftmp, :PowerLawViscosityProperty)
-    save_property(ftmp, [p1, p2])
+    save_property(ftmp, p3)
+    p3′ = load_property(ftmp, :CompositePowerLawViscosityProperty)
+
+    save_property(ftmp, p1, p2)
     p1′′ = load_property(ftmp, :RateStateQuasiDynamicProperty)
     p2′′ = load_property(ftmp, :PowerLawViscosityProperty)
-
+    save_property(ftmp, p1, p3)
+    p3′′ = load_property(ftmp, :CompositePowerLawViscosityProperty)
     @test p1 == p1′ == p1′′
     @test p2 == p2′ == p2′′
+    @test p3 == p3′ == p3′′
+end
+
+@testset "Viscosity Law" begin
+    import Oetqf: dϵ_dt
+
+    A, n, σ, τ = [rand() for _ ∈ 1: 4]
+    p = PowerLawViscosityProperty([A], [n], rand(6))
+    expected = A * σ * τ ^ n
+    given = dϵ_dt(p, 1, σ, τ)
+    @test given == expected
+    A2, n2 = rand(), rand()
+    p2 = PowerLawViscosityProperty([A2], [n2], rand(6))
+    pc = CompositePowerLawViscosityProperty([p, p2], rand(6))
+    @test dϵ_dt(pc, 1, σ, τ) == expected + A2 * σ * τ ^ n2
 end

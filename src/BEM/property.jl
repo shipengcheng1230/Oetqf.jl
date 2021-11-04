@@ -26,19 +26,27 @@ end
 
 @with_kw struct PowerLawViscosityProperty{T, I, U} <: ViscosityProperty
     γ::T
-    n::I
+    n::I # notice it is `power - 1`
     dϵ₀::U
 
     @assert length(dϵ₀) == 6
     @assert length(γ) == length(n)
 end
 
+@with_kw struct CompositePowerLawViscosityProperty{T<:AbstractVector, U} <: ViscosityProperty
+    piter::T
+    dϵ₀::U
+
+    @assert length(dϵ₀) == 6
+end
+
 const _field_names = Dict(
     :RateStateQuasiDynamicProperty => (:a, :b, :L, :σ, :η, :vpl, :f0, :v0),
     :PowerLawViscosityProperty => (:γ, :n, :dϵ₀),
+    :CompositePowerLawViscosityProperty => (:piter, :dϵ₀),
 )
 
-@assert mapreduce(Set, union, values(_field_names)) |> length == mapreduce(length, +, values(_field_names)) "Found duplicated property field names!"
+# @assert mapreduce(Set, union, values(_field_names)) |> length == mapreduce(length, +, values(_field_names)) "Found duplicated property field names!"
 
 for (nn, fn) ∈ _field_names
     @eval begin
@@ -55,23 +63,34 @@ function struct_to_dict(p)
     Dict(name => getfield(p, name) for name ∈ fieldnames(p))
 end
 
+function struct_to_dict(p::CompositePowerLawViscosityProperty)
+    Dict(:piter => [struct_to_dict(x) for x ∈ p.piter], :dϵ₀ => getfield(p, :dϵ₀))
+end
+
 function save_property(file::AbstractString, p::AbstractProperty)
     bson(file, struct_to_dict(p))
 end
 
-function save_property(file::AbstractString, piter)
-    d = foldl(merge, map(struct_to_dict, piter))
+function save_property(file::AbstractString, p1::RateStateQuasiDynamicProperty, p2::ViscosityProperty)
+    d = foldl(merge, map(struct_to_dict, (p1, p2)))
     bson(file, d)
 end
 
 function load_property(file::AbstractString, p::Symbol)
     d = BSON.load(file)
+    load_property(d, p)
+end
+
+function load_property(d::AbstractDict, p::Symbol)
     @match p begin
         :RateStateQuasiDynamicProperty => RateStateQuasiDynamicProperty(
             d[:a], d[:b], d[:L], d[:σ], d[:η], d[:vpl], d[:f0], d[:v0],
         )
         :PowerLawViscosityProperty => PowerLawViscosityProperty(
             d[:γ], d[:n], d[:dϵ₀],
+        )
+        :CompositePowerLawViscosityProperty => CompositePowerLawViscosityProperty(
+            [load_property(x, :PowerLawViscosityProperty) for x ∈ d[:piter]], d[:dϵ₀],
         )
     end
 end
