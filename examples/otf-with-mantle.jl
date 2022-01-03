@@ -40,8 +40,8 @@ h5write(gffile, "gf₂₂", gf₂₂) # mantle -> mantle
 
 
 # !!! tip
-#     Notice that, in Gmsh before v4.9, the quadrature type "Gauss2" does not stand for the product rule, instead it is an optimized cubature rule (
-#     (see [this issue](https://gitlab.onelab.info/gmsh/gmsh/-/issues/1351)). For more cubature rules, see [quadpy](https://github.com/nschloe/quadpy).
+#     Notice that, in Gmsh before v4.9, the quadrature type "Gauss2" does not stand for the product rule, instead it is an optimized cubature
+#     rule (see [this issue](https://gitlab.onelab.info/gmsh/gmsh/-/issues/1351)). For more cubature rules, see [quadpy](https://github.com/nschloe/quadpy).
 
 
 # Set up the rate-and-state friction parameters in the fault:
