@@ -81,10 +81,31 @@ function _trigger_save(b::H5SaveBuffer)
     b.count = 1
 end
 
+# examples of function handlers to extract solutions for saving
 𝐕𝚯𝚫(u::ArrayPartition, args...) = (u.x[1], u.x[2], u.x[3])
 𝐕𝚯𝚬′𝚫(u::ArrayPartition, t, integrator) = (u.x[1], u.x[2], integrator(integrator.t, Val{1}).x[3], u.x[5])
 
-# solve and save
+"""
+    wsolve(prob::ODEProblem, alg::OrdinaryDiffEqAlgorithm,
+        file, nstep, getu, ustrs, tstr; kwargs...)
+Write the solution to HDF5 file while solving the ODE. The interface
+    is exactly the same as
+    [`solve` an `ODEProblem`](http://docs.juliadiffeq.org/latest/basics/common_solver_opts.html)
+    except a few more about the saving procedure. Notice, it will set
+    `save_everystep=false` so to avoid memory blow up. The return code
+    will be written as an attribute in `tstr` data group.
+## Extra Arguments
+- `file::AbstractString`: name of file to be saved
+- `nstep::Integer`: number of steps after which a saving operation will be performed
+- `getu::Function`: function handler to extract desired solution for saving
+- `ustr::AbstractVector`: list of names to be assigned for each components, whose
+    length must equal the length of `getu` output
+- `tstr::AbstractString`: name of time data
+## KWARGS
+- `stride::Integer=1`: downsampling rate for saving outputs
+- `append::Bool=false`: if true then append solution after the end of `file`
+- `force::Bool=false`: force to overwrite the existing solution file
+"""
 function wsolve(prob::ODEProblem, alg::OrdinaryDiffEqAlgorithm, file, nstep, getu, ustrs, tstr; stride::Integer=1, append::Bool=false, force::Bool=false, kwargs...)
     if isfile(file) && !force && !append
         @info "Overwrite existing file $(file) must set `force = true`."
