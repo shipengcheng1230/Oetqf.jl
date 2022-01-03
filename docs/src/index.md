@@ -6,4 +6,4 @@ A collection of commonly used Green's functions can be accessed at [GeoGreensFun
 
 ## Known Issues
 
-- The competetion between Julia threads and BLAS threads when hyperthreading is disabled, see [this example](https://discourse.julialang.org/t/possible-performance-drop-when-using-more-than-one-socket-threads/62022).
+- The competition between Julia threads and BLAS threads when hyperthreading is disabled, see [this example](https://discourse.julialang.org/t/possible-performance-drop-when-using-more-than-one-socket-threads/62022).
