@@ -90,7 +90,7 @@ end
         file, nstep, getu, ustrs, tstr; kwargs...)
 Write the solution to HDF5 file while solving the ODE. The interface
     is exactly the same as
-    [`solve` an `ODEProblem`](http://docs.juliadiffeq.org/latest/basics/common_solver_opts.html)
+    [`solve` an `ODEProblem`](https://diffeq.sciml.ai/dev/basics/common_solver_opts/)
     except a few more about the saving procedure. Notice, it will set
     `save_everystep=false` so to avoid memory blow up. The return code
     will be written as an attribute in `tstr` data group.
