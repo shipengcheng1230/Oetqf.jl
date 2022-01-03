@@ -55,6 +55,24 @@ end
         size(Δx) == size(Δy) == size(Δz)
 end
 
+"""
+    gen_gmsh_mesh(::Val{:BEMHex8Mesh},
+        llx::T, lly::T, llz::T, dx::T, dy::T, dz::T, nx::I, ny::I, nz::I;
+        rfx::T=one(T), rfy::T=one(T), rfzh::AbstractVector=ones(nz),
+        rfxType::AbstractString="Bump", rfyType::AbstractString="Bump",
+        output::AbstractString="temp.msh"
+    ) where {T, I}
+
+Gernate a box using 8-node hexahedron elements by vertically extruding transfinite curve on xy plane, allowing
+    total flexibility on the mesh size in z direction, and refinement in xy plane.
+
+## Arguments
+- `llx`, `lly`, `llz`: coordinates of low-left corner on the top surface
+- `dx`, `dy`, `dz`: x-, y-, z-extension
+- `nx`, `ny`: number of cells along x-, y-axis
+- `rfx`, `rfy`: refinement coefficients along x-, y-axis using **Bump** algorithm, please refer `gmsh.model.geo.mesh.setTransfiniteCurve`
+- `rfzh`: accumulated height of cells along z-axis which will be normalized automatically, please refer `heights` in `gmsh.model.geo.extrude`
+"""
 function gen_gmsh_mesh(::Val{:BEMHex8Mesh},
     llx::T, lly::T, llz::T, dx::T, dy::T, dz::T, nx::I, ny::I, nz::I;
     rfx::T=one(T), rfy::T=one(T), rfzh::AbstractVector=ones(nz),

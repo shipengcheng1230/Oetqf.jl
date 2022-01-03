@@ -28,3 +28,7 @@ docs/site/
 Manifest.toml
 
 .vscode
+*.vt*
+*.h5
+*.bson
+*.json

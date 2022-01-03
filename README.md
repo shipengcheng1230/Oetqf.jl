@@ -6,4 +6,4 @@
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://shipengcheng1230.github.io/Oetqf.jl/stable)
 
 ## Reference
-Pengcheng Shi, Meng Wei, Contribution of Viscoelastic Stress to the Synchronization of Earthquake Cycles on Oceanic Transform Faults, submitted to Journal of Geophysical Research - Solid Earth
+Pengcheng Shi, Meng Wei, (2022). Contribution of Viscoelastic Stress to the Synchronization of Earthquake Cycles on Oceanic Transform Faults, submitted to Journal of Geophysical Research - Solid Earth
