@@ -88,12 +88,14 @@ end
 """
     wsolve(prob::ODEProblem, alg::OrdinaryDiffEqAlgorithm,
         file, nstep, getu, ustrs, tstr; kwargs...)
+
 Write the solution to HDF5 file while solving the ODE. The interface
     is exactly the same as
     [`solve` an `ODEProblem`](https://diffeq.sciml.ai/dev/basics/common_solver_opts/)
     except a few more about the saving procedure. Notice, it will set
     `save_everystep=false` so to avoid memory blow up. The return code
     will be written as an attribute in `tstr` data group.
+
 ## Extra Arguments
 - `file::AbstractString`: name of file to be saved
 - `nstep::Integer`: number of steps after which a saving operation will be performed
@@ -101,6 +103,7 @@ Write the solution to HDF5 file while solving the ODE. The interface
 - `ustr::AbstractVector`: list of names to be assigned for each components, whose
     length must equal the length of `getu` output
 - `tstr::AbstractString`: name of time data
+
 ## KWARGS
 - `stride::Integer=1`: downsampling rate for saving outputs
 - `append::Bool=false`: if true then append solution after the end of `file`

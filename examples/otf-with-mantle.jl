@@ -131,7 +131,7 @@ prob = assemble(gf₁₁, gf₁₂, gf₂₁, gf₂₂, pf, pa, uinit, (0.0, 0.1
 
 
 # Set up the saving scheme and solve the equation:
-handler(u::ArrayPartition, t, integrator) = (u.x[1], u.x[2], integrator(integrator.t, Val{1}).x[3], u.x[3],   u.x[4], u.x[5])
+handler(u::ArrayPartition, t, integrator) = (u.x[1], u.x[2], integrator(integrator.t, Val{1}).x[3], u.x[3], u.x[4], u.x[5])
 output = joinpath(@__DIR__, "output.h5")
 @time sol = wsolve(prob, VCABM5(), output, 100, handler, ["v", "θ", "dϵ", "ϵ", "σ", "δ"], "t";
     reltol=1e-6, abstol=1e-8, dtmax=0.2*365*86400, dt=1e-8, maxiters=1e9, stride=100, force=true

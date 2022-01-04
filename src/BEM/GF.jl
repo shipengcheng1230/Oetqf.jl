@@ -2,6 +2,7 @@
 
 abstract type FaultType end
 struct StrikeSlip <: FaultType end
+struct DipSlip <: FaultType end
 
 # multi-threading
 
@@ -48,6 +49,7 @@ function stress_greens_function(mesh::RectOkadaMesh, λ::T, μ::T;
 end
 
 @inline unit_dislocation(::StrikeSlip, T=Float64) = (one(T), zero(T), zero(T))
+@inline unit_dislocation(::DipSlip, T=Float64) = (zero(T), one(T), zero(T))
 
 @inline function shear_traction_dc3d(::StrikeSlip, u::AbstractVector, λ::T, μ::T, dip::T) where T
     σxy = μ * (u[5] + u[7])
@@ -55,9 +57,20 @@ end
     -σxy * sind(dip) + σxz * cosd(dip)
 end
 
+@inline function shear_traction_dc3d(::DipSlip, u::AbstractVector, λ::T, μ::T, dip::T) where T
+    σzz = (λ + 2μ) * u[12] + λ * u[4] + λ * u[8]
+    σyy = (λ + 2μ) * u[8] + λ * u[4] + λ * u[12]
+    σyz = μ * (u[11] + u[9])
+    (σzz - σyy) / 2 * sind(2dip) + σyz * cosd(2dip)
+end
+
 @inline function shear_traction_vol(::StrikeSlip, σ::AbstractVector, dip::T) where T
     # think carefully about the direction
     -σ[2] * sind(dip) + σ[3] * cosd(dip)
+end
+
+@inline function shear_traction_vol(::DipSlip, σ::AbstractVector, dip::T) where T
+    (σ[6] - σ[4]) / 2 * sind(2dip) + σ[5] * cosd(2dip)
 end
 
 #

@@ -33,7 +33,7 @@ include("BEM/mesh.jl")
 export gen_mesh, gen_gmsh_mesh
 
 include("BEM/GF.jl")
-export stress_greens_function, StrikeSlip
+export stress_greens_function, StrikeSlip, DipSlip
 
 include("BEM/property.jl")
 export RateStateQuasiDynamicProperty,
