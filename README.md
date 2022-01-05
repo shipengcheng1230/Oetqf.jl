@@ -10,4 +10,4 @@
 - Wei, M., & Shi, P. (2021). Synchronization of Earthquake Cycles of Adjacent Segments on Oceanic Transform Faults Revealed by Numerical Simulation in the Framework of Rate-and-State Friction. Journal of Geophysical Research: Solid Earth, 126(1), e2020JB020231. https://doi.org/10.1029/2020JB020231
 
 
-- Shi, P., & Wei, M. (2022). Contribution of Viscoelastic Stress to the Synchronization of Earthquake Cycles on Oceanic Transform Faults, submitted to Journal of Geophysical Research - Solid Earth
+- Shi, P., Wei, M., & Barbot, S. (2022). Contribution of Viscoelastic Stress to the Synchronization of Earthquake Cycles on Oceanic Transform Faults, to be submitted to Journal of Geophysical Research: Solid Earth
