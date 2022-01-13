@@ -1,5 +1,5 @@
 # !!! note
-#     This example corresponds to the simulations in Shi & Wei, (2022), submitted to JGR - Solid Earth. The mesh size is
+#     This example corresponds to the simulations in Shi, P., Wei, M., & Barbot, S., (2022), submitted to JGR - Solid Earth. The mesh size is
 #     downgraded for speed of the document building
 
 using Oetqf, SpecialFunctions, Optim
