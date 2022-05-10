@@ -72,6 +72,17 @@ function assemble(
 end
 
 function assemble(
+    gf::AbstractArray,
+    p::RateStateQuasiDynamicProperty,
+    dila::DilatancyProperty,
+    u0::ArrayPartition, tspan::NTuple{2};
+    se::StateEvolutionLaw=DieterichStateLaw(), kwargs...)
+
+    alloc = gen_alloc(Val(:BEMFault), size(u0.x[1], 1), size(u0.x[1], 2); kwargs...)
+    return ODEProblem{true}(ode, u0, tspan, (p, dila, alloc, gf, se))
+end
+
+function assemble(
     gf₁₁::AbstractArray,
     gf₁₂::AbstractMatrix,
     gf₂₁::AbstractMatrix,

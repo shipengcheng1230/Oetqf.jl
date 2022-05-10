@@ -79,8 +79,8 @@ function save_property(file::AbstractString, p::AbstractProperty)
     bson(file, struct_to_dict(p))
 end
 
-function save_property(file::AbstractString, p1::RateStateQuasiDynamicProperty, p2::ViscosityProperty)
-    d = foldl(merge, map(struct_to_dict, (p1, p2)))
+function save_property(file::AbstractString, ps...)
+    d = foldl(merge, map(struct_to_dict, ps))
     bson(file, d)
 end
 

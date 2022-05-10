@@ -70,6 +70,17 @@ end
     @test_nowarn @inferred prob.f(du, u0, prob.p, 1.0)
 end
 
+@testset "Okada with dilatancy assemble" begin
+    mesh = gen_mesh(Val(:RectOkada), 10., 10., 2., 2., 90.)
+    gf = stress_greens_function(mesh, 1.0, 1.0; buffer_ratio=1.0)
+    p = RateStateQuasiDynamicProperty([rand(mesh.nx, mesh.nξ) for _ in 1: 4]..., rand(4)...)
+    dila = DilatancyProperty([rand(mesh.nx, mesh.nξ) for _ in 1: 4]...)
+    u0 = ArrayPartition([rand(mesh.nx, mesh.nξ) for _ in 1: 4]...)
+    prob = assemble(gf, p, dila, u0, (0., 1.0))
+    du = similar(u0)
+    @test_nowarn @inferred prob.f(du, u0, prob.p, 1.0)
+end
+
 @testset "Viscoelastic assemble" begin
     mf = gen_mesh(Val(:RectOkada), 100.0, 100.0, 10.0, 20.0, 90.0)
     temp = tempname() * ".msh"
