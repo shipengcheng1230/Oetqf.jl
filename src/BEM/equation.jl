@@ -195,14 +195,13 @@ end
     v::T, θ::T, 𝓅::T, dv::T, dθ::T, dδ::T, d𝓅::T, se::StateEvolutionLaw) where T
 
     @batch for i ∈ eachindex(v)
-
         dθ[i] = dθ_dt(se, v[i], θ[i], p.L[i])
         d𝓅[i] = d𝓅_dt(dila, i, 𝓅[i], θ[i], dθ[i])
 
         aᶠ = p.a[i] / p.f₀
         bᶠ = p.b[i] / p.f₀
-        vᶠ = v[i] / p.v₀
-        θᶠ = θ[i] * p.v₀ / p.L[i]
+        vᶠ = max(zero(eltype(v)), v[i] / p.v₀)
+        θᶠ = max(zero(eltype(θ)), θ[i] * p.v₀ / p.L[i])
         vᶠᵃ⁻¹ = vᶠ ^ (aᶠ - 1)
         θᶠᵇ⁻¹ = θᶠ ^ (bᶠ - 1)
         vᶠᵃ = vᶠ ^ aᶠ
