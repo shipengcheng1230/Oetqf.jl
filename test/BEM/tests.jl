@@ -103,6 +103,7 @@ end
     p1 = RateStateQuasiDynamicProperty([rand(nx, nξ) for _ in 1: 4]..., rand(4)...)
     p2 = PowerLawViscosityProperty(rand(ne), 3 * ones(Int, ne), rand(6))
     p3 = CompositePowerLawViscosityProperty([p2, p2], rand(6))
+    p4 = DilatancyProperty([rand(nx, nξ) for _ in 1: 4] ...)
 
     ftmp = tempname()
     save_property(ftmp, p1)
@@ -111,15 +112,20 @@ end
     p2′ = load_property(ftmp, :PowerLawViscosityProperty)
     save_property(ftmp, p3)
     p3′ = load_property(ftmp, :CompositePowerLawViscosityProperty)
+    save_property(ftmp, p4)
+    p4′ = load_property(ftmp, :DilatancyProperty)
 
     save_property(ftmp, p1, p2)
     p1′′ = load_property(ftmp, :RateStateQuasiDynamicProperty)
     p2′′ = load_property(ftmp, :PowerLawViscosityProperty)
     save_property(ftmp, p1, p3)
     p3′′ = load_property(ftmp, :CompositePowerLawViscosityProperty)
+    save_property(ftmp, p1, p4)
+    p4′′ = load_property(ftmp, :DilatancyProperty)
     @test p1 == p1′ == p1′′
     @test p2 == p2′ == p2′′
     @test p3 == p3′ == p3′′
+    @test p4 == p4′ == p4′′
 end
 
 @testset "Viscosity Law" begin

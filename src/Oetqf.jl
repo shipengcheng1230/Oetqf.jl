@@ -39,6 +39,7 @@ include("BEM/property.jl")
 export RateStateQuasiDynamicProperty,
        PowerLawViscosityProperty,
        CompositePowerLawViscosityProperty,
+       DilatancyProperty,
        save_property, load_property
 
 include("BEM/equation.jl")

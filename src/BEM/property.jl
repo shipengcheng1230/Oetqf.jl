@@ -14,14 +14,21 @@ abstract type ViscosityProperty <: AbstractProperty end
     σ::U # effective normal stress
     η::T # radiation damping
     vpl::T # plate rate
-    f0::T = 0.6 # ref. frictional coeff
-    v0::T = 1e-6 # ref. velocity
+    f₀::T = 0.6 # ref. frictional coeff
+    v₀::T = 1e-6 # ref. velocity
 
     @assert size(a) == size(b) == size(L) == size(σ)
-    @assert f0 > 0
-    @assert v0 > 0
+    @assert f₀ > 0
+    @assert v₀ > 0
     @assert η > 0
     @assert vpl > 0
+end
+
+@with_kw struct DilatancyProperty{T} <: AbstractProperty
+    tₚ::T # characteristic diffusion timescale
+    ϵ::T # dilantancy coefficient
+    β::T # fault gouge bulk compressibility
+    p₀::T # ambient pore pressure
 end
 
 @with_kw struct PowerLawViscosityProperty{T, I, U} <: ViscosityProperty
@@ -41,9 +48,10 @@ end
 end
 
 const _field_names = Dict(
-    :RateStateQuasiDynamicProperty => (:a, :b, :L, :σ, :η, :vpl, :f0, :v0),
+    :RateStateQuasiDynamicProperty => (:a, :b, :L, :σ, :η, :vpl, :f₀, :v₀),
     :PowerLawViscosityProperty => (:γ, :n, :dϵ₀),
     :CompositePowerLawViscosityProperty => (:piter, :dϵ₀),
+    :DilatancyProperty => (:tₚ, :ϵ, :β, :p₀),
 )
 
 # @assert mapreduce(Set, union, values(_field_names)) |> length == mapreduce(length, +, values(_field_names)) "Found duplicated property field names!"
@@ -84,13 +92,16 @@ end
 function load_property(d::AbstractDict, p::Symbol)
     @match p begin
         :RateStateQuasiDynamicProperty => RateStateQuasiDynamicProperty(
-            d[:a], d[:b], d[:L], d[:σ], d[:η], d[:vpl], d[:f0], d[:v0],
+            d[:a], d[:b], d[:L], d[:σ], d[:η], d[:vpl], d[:f₀], d[:v₀],
         )
         :PowerLawViscosityProperty => PowerLawViscosityProperty(
             d[:γ], d[:n], d[:dϵ₀],
         )
         :CompositePowerLawViscosityProperty => CompositePowerLawViscosityProperty(
             [load_property(x, :PowerLawViscosityProperty) for x ∈ d[:piter]], d[:dϵ₀],
+        )
+        :DilatancyProperty => DilatancyProperty(
+            d[:tₚ], d[:ϵ], d[:β], d[:p₀],
         )
     end
 end
