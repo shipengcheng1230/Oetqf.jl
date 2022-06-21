@@ -1,7 +1,7 @@
 name = "Oetqf"
 uuid = "ba4b8404-3ddb-4226-b41e-638ed858d44e"
 authors = ["Pengcheng Shi <shipengcheng1230@gmail.com>"]
-version = "0.1.2"
+version = "0.2.0"
 
 [deps]
 BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
@@ -24,6 +24,7 @@ RecursiveArrayTools = "731186ca-8d62-57ce-b412-fbd966d074cd"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 Strided = "5e0ebb24-38b0-5f93-81fe-25c709ecae67"
 WriteVTK = "64499a7a-5c06-52f2-abe2-ccb03c286192"
+gmsh_jll = "630162c2-fc9b-58b3-9910-8442a8a132e6"
 
 [compat]
 BSON = "0.3"
@@ -44,3 +45,4 @@ Reexport = "1.0"
 Strided = "1.1"
 WriteVTK = "1.9"
 julia = "1.6"
+gmsh_jll = "~4.8"

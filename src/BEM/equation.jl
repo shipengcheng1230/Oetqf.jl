@@ -72,6 +72,17 @@ function assemble(
 end
 
 function assemble(
+    gf::AbstractArray,
+    p::RateStateQuasiDynamicProperty,
+    dila::DilatancyProperty,
+    u0::ArrayPartition, tspan::NTuple{2};
+    se::StateEvolutionLaw=DieterichStateLaw(), kwargs...)
+
+    alloc = gen_alloc(Val(:BEMFault), size(u0.x[1], 1), size(u0.x[1], 2); kwargs...)
+    return ODEProblem{true}(ode, u0, tspan, (p, dila, alloc, gf, se))
+end
+
+function assemble(
     gf₁₁::AbstractArray,
     gf₁₂::AbstractMatrix,
     gf₂₁::AbstractMatrix,
@@ -98,8 +109,30 @@ function ode(du::T, u::T, p::Tuple{P, AL, A, SE}, t::U
     update_fault!(prop, alloc, v, θ, dv, dθ, dδ, se)
 end
 
+function ode(du::T, u::T, p::Tuple{P1, P2, AL, A, SE}, t::U
+    ) where {
+        T, U,
+        P1<:RateStateQuasiDynamicProperty, P2<:DilatancyProperty,
+        AL<:TractionRateAllocFFTConv,
+        A, SE<:StateEvolutionLaw
+    }
+
+    v, θ, _, 𝓅 = u.x
+    dv, dθ, dδ, d𝓅 = du.x
+    prop, dila, alloc, gf, se = p
+
+    relative_velocity!(alloc, prop.vpl, v)
+    dτ_dt!(gf, alloc)
+    update_fault_with_dilatancy!(prop, dila, alloc, v, θ, 𝓅, dv, dθ, dδ, d𝓅, se)
+end
+
 function ode(du::T, u::T, p::Tuple{P1, P2, AL1, AL2, A, U, U, U, SE}, t::V
-    ) where {T, U, V, A, SE<:StateEvolutionLaw, P1<:AbstractProperty, P2<:AbstractProperty, AL1<:ODEAllocation, AL2<:ODEAllocation}
+    ) where {
+        T, U, V, A,
+        SE<:StateEvolutionLaw,
+        P1<:RateStateQuasiDynamicProperty, P2<:ViscosityProperty,
+        AL1<:TractionRateAllocFFTConv, AL2<:StressRateAllocMatrix
+    }
 
     v, θ, _, σ, _ = u.x
     dv, dθ, dϵ, dσ, dδ = du.x
@@ -146,7 +179,7 @@ end
     v::T, θ::T, dv::T, dθ::T, dδ::T, se::StateEvolutionLaw) where T
 
     @batch for i ∈ eachindex(v)
-        ψ1 = exp((p.f0 + p.b[i] * log(p.v0 * max(zero(eltype(θ)), θ[i]) / p.L[i])) / p.a[i]) / 2p.v0
+        ψ1 = exp((p.f₀ + p.b[i] * log(p.v₀ * max(zero(eltype(θ)), θ[i]) / p.L[i])) / p.a[i]) / 2p.v₀
         ψ2 = p.σ[i] * ψ1 / hypot(1, v[i] * ψ1)
         dμ_dv = p.a[i] * ψ2
         dμ_dθ = p.b[i] / θ[i] * v[i] * ψ2
@@ -156,8 +189,40 @@ end
     end
 end
 
+@inline function update_fault_with_dilatancy!(
+    p::RateStateQuasiDynamicProperty, dila::DilatancyProperty,
+    alloc::TractionRateAllocFFTConv,
+    v::T, θ::T, 𝓅::T, dv::T, dθ::T, dδ::T, d𝓅::T, se::StateEvolutionLaw) where T
+
+    @batch for i ∈ eachindex(v)
+        dθ[i] = dθ_dt(se, v[i], θ[i], p.L[i])
+        d𝓅[i] = d𝓅_dt(dila, i, 𝓅[i], θ[i], dθ[i])
+
+        aᶠ = p.a[i] / p.f₀
+        bᶠ = p.b[i] / p.f₀
+        vᶠ = max(zero(eltype(v)), v[i] / p.v₀)
+        θᶠ = max(zero(eltype(θ)), θ[i] * p.v₀ / p.L[i])
+        vᶠᵃ⁻¹ = vᶠ ^ (aᶠ - 1)
+        θᶠᵇ⁻¹ = θᶠ ^ (bᶠ - 1)
+        vᶠᵃ = vᶠ ^ aᶠ
+        θᶠᵇ = θᶠ ^ bᶠ
+
+        dv[i] = (
+            alloc.dτ_dt[i] +
+            p.f₀ * d𝓅[i] * vᶠᵃ * θᶠᵇ -
+            p.f₀ * (p.σ[i] - 𝓅[i]) * vᶠᵃ * θᶠᵇ⁻¹ * bᶠ * p.v₀ / p.L[i] * dθ[i]
+        ) / (
+            p.f₀ * (p.σ[i] - 𝓅[i]) * vᶠᵃ⁻¹ * θᶠᵇ * aᶠ / p.v₀
+        )
+        dδ[i] = v[i]
+    end
+end
+
 # evolution law
 @inline dθ_dt(::DieterichStateLaw, v::T, θ::T, L::T) where T = 1 - v * θ / L
+
+# dilantancy law
+@inline d𝓅_dt(dila::DilatancyProperty, i::Int, 𝓅::T, θ::T, dθ::T) where T = -(𝓅 - dila.p₀[i]) / dila.tₚ[i] + dila.ϵ[i] / dila.β[i] / θ * dθ
 
 # viscosity law
 @inline dϵ_dt(p::PowerLawViscosityProperty, i::Int, σ::T, τnorm::T) where T = p.γ[i] * σ * τnorm ^ p.n[i]
