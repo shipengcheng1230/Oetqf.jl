@@ -108,8 +108,8 @@ function assemble(
     u0::ArrayPartition, tspan::NTuple{2};
     se::StateEvolutionLaw=DieterichStateLaw(), kwargs...)
 
-    alloc₁ = Qetqf.gen_alloc(Val(:BEMFault), size(u0.x[1])...; kwargs...)
-    alloc₂ = Qetqf.gen_alloc(Val(:BEMMantle), size(u0.x[3], 1))
+    alloc₁ = gen_alloc(Val(:BEMFault), size(u0.x[1])...; kwargs...)
+    alloc₂ = gen_alloc(Val(:BEMMantle), size(u0.x[3], 1))
     return ODEProblem{true}(ode, u0, tspan, (pf, pa, dila, alloc₁, alloc₂, gf₁₁, gf₁₂, gf₂₁, gf₂₂, se))
 end
 
