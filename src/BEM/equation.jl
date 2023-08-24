@@ -177,7 +177,7 @@ function ode(du::T, u::T, p::Tuple{P1, P2, Dila, AL1, AL2, A, U, U, U, SE}, t::V
     pf, pa, dila, alloc1, alloc2, gf₁₁, gf₁₂, gf₂₁, gf₂₂, se = p
 
     relative_velocity!(alloc1, pf.vpl, v)
-    update_strain_rate!(pa, σ, dϵ, 𝓅)
+    update_strain_rate!(pa, σ, dϵ)
     relative_strain_rate!(alloc2, dϵ, pa.dϵ₀)
     dτ_dt!(gf₁₁, alloc1) # fault - fault
     matvecmul!(vec(alloc1.dτ_dt), gf₂₁, vec(alloc2.reldϵ), true, true) # mantle - fault
