@@ -177,7 +177,7 @@ function ode(du::T, u::T, p::Tuple{P1, P2, Dila, AL1, AL2, A, U, U, U, SE}, t::V
     pf, pa, dila, alloc1, alloc2, gf₁₁, gf₁₂, gf₂₁, gf₂₂, se = p
 
     relative_velocity!(alloc1, pf.vpl, v)
-    update_strain_rate!(pa, σ, dϵ)
+    update_strain_rate!(pa, σ, dϵ, 𝓅)
     relative_strain_rate!(alloc2, dϵ, pa.dϵ₀)
     dτ_dt!(gf₁₁, alloc1) # fault - fault
     matvecmul!(vec(alloc1.dτ_dt), gf₂₁, vec(alloc2.reldϵ), true, true) # mantle - fault
@@ -203,6 +203,31 @@ end
         dϵ[i,6] = dϵ_dt(p, i, σzz, τnorm)
     end
 end
+
+@inline function update_strain_rate!(p::ViscosityProperty, σ::T, dϵ::T, 𝓅::T) where T
+    @batch for i ∈ axes(σ, 1)
+        σkk = (σ[i,1] + σ[i,4] + σ[i,6]) / 3 - 𝓅[i] # subtracting pore pressure for volumetric stress
+        σxx = σ[i,1] - σkk
+        σyy = σ[i,4] - σkk
+        σzz = σ[i,6] - σkk
+        σxy, σxz, σyz = σ[i,2], σ[i,3], σ[i,5]
+        
+        # Adjustments for effective stresses due to pore pressure
+        σxx -= 𝓅[i]
+        σyy -= 𝓅[i]
+        σzz -= 𝓅[i]
+        # Note: σxy, σxz, and σyz are shear stresses and might not be directly affected by pore pressure.
+
+        τnorm = sqrt(σxx^2 + σyy^2 + σzz^2 + 2 * (σxy^2 + σxz^2 + σyz^2))
+        dϵ[i,1] = dϵ_dt(p, i, σxx, τnorm)
+        dϵ[i,2] = dϵ_dt(p, i, σxy, τnorm)
+        dϵ[i,3] = dϵ_dt(p, i, σxz, τnorm)
+        dϵ[i,4] = dϵ_dt(p, i, σyy, τnorm)
+        dϵ[i,5] = dϵ_dt(p, i, σyz, τnorm)
+        dϵ[i,6] = dϵ_dt(p, i, σzz, τnorm)
+    end
+end
+
 
 @inline function relative_strain_rate!(alloc::StressRateAllocMatrix, dϵ::AbstractMatrix, dϵ₀::AbstractVector)
     @batch for i ∈ axes(dϵ, 1)
