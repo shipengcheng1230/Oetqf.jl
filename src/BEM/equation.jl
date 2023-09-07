@@ -140,14 +140,7 @@ function ode(du::T, u::T, p::Tuple{P1, P2, AL, A, SE}, t::U
     relative_velocity!(alloc, prop.vpl, v)
     dτ_dt!(gf, alloc)
     update_fault_with_dilatancy!(prop, dila, alloc, v, θ, 𝓅, dv, dθ, dδ, d𝓅, se)
-     # Print all the outputs
-    println("v: ", v)
-    println("θ: ", θ)
-    println("𝓅: ", 𝓅)
-    println("dv: ", dv)
-    println("dθ: ", dθ)
-    println("dδ: ", dδ)
-    println("d𝓅: ", d𝓅)
+     # Print time
     println("Current time (t): ", t)
 end
 
