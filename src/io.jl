@@ -122,13 +122,12 @@ function wsolve(prob::ODEProblem, alg::OrdinaryDiffEqAlgorithm, file, nstep, get
     #cb = (u, t, integrator) -> h5savebuffercbkernel(u, t, integrator, bf, getu)
     # Modified callback
     cb = (u, t, integrator) -> begin
-        # Saving to h5 buffer
-        h5savebuffercbkernel(u, t, integrator, bf, getu)
-        
-        # Printing the time step
-        sim = integrator.sol # Assuming this gives the current solution object
-        dt = get_timestep(sim, t) # Extracting the time step using the provided function
-        println("Time step at t = $t is: $dt")
+    # Saving to h5 buffer
+    h5savebuffercbkernel(u, t, integrator, bf, getu)
+    
+    # Printing the time step
+    dt = integrator.dt
+    println("Time step at t = $t is: $dt")
     end
     fcb = FunctionCallingCallback(cb)
     sol = solve(prob, alg; save_everystep=false, callback=fcb, kwargs...)
