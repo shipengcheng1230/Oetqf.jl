@@ -47,10 +47,10 @@ function gen_pvd(mf::RectOkadaMesh, mafile, solh5, tstr, ufstrs, uastrs, steps, 
     td = open_dataset(f, tstr)
     ufs = map(x -> open_dataset(f, x), ufstrs)
     uas = map(x -> open_dataset(f, x), uastrs)
-    fmt = "%0$(ndigits(length(steps)))d"
+    padding = ndigits(length(steps))
 
     for i ∈ steps
-        vtm = vtk_multiblock(output * sprintf1(fmt, i))
+        vtm = vtk_multiblock(output * lpad(i, padding, '0'))
         vtk1 = vtk_grid(vtm, v1...)
         vtk2 = vtk_grid(vtm, v2...)
         for (ufstr, uf) ∈ zip(ufstrs, ufs)
