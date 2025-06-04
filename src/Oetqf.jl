@@ -18,7 +18,6 @@ using Printf
 using MLStyle
 using Polyester
 using WriteVTK
-using Formatting
 using Preferences
 using Octavian
 

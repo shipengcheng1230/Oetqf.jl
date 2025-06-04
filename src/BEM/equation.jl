@@ -61,6 +61,20 @@ end
 end
 
 # build ode
+
+"""
+    assemble(gf::AbstractArray, p::RateStateQuasiDynamicProperty, u0::ArrayPartition, tspan::NTuple{2};
+             se::StateEvolutionLaw=DieterichStateLaw(), kwargs...)
+
+Construct an `ODEProblem` for rate-and-state friction model with quasi-dynamic evolution.
+
+## Arguments
+- `gf`: Greens function array for the fault
+- `p`: rate-and-state quasi-dynamic property
+- `u0`: initial state partition, must be an `ArrayPartition` with 3 components: velocity, state variable, and fault slip
+- `tspan`: time span for the simulation, a tuple of two values (start, stop)
+- `se`: state evolution law, defaults to `DieterichStateLaw()
+"""
 function assemble(
     gf::AbstractArray,
     p::RateStateQuasiDynamicProperty,
@@ -71,6 +85,20 @@ function assemble(
     return ODEProblem{true}(ode, u0, tspan, (p, alloc, gf, se))
 end
 
+"""
+    assemble(gf::AbstractArray, p::RateStateQuasiDynamicProperty, dila::DilatancyProperty, u0::ArrayPartition, tspan::NTuple{2};
+             se::StateEvolutionLaw=DieterichStateLaw(), kwargs...)
+
+Construct an `ODEProblem` for rate-and-state friction model with dilatancy and quasi-dynamic evolution.
+
+## Arguments
+- `gf`: Greens function array for the fault
+- `p`: rate-and-state quasi-dynamic property
+- `dila`: dilatancy property
+- `u0`: initial state partition, must be an `ArrayPartition` with 4 components: velocity, state variable, pressure, and fault slip
+- `tspan`: time span for the simulation, a tuple of two values (start, stop)
+- `se`: state evolution law, defaults to `DieterichStateLaw()`
+"""
 function assemble(
     gf::AbstractArray,
     p::RateStateQuasiDynamicProperty,
@@ -82,6 +110,25 @@ function assemble(
     return ODEProblem{true}(ode, u0, tspan, (p, dila, alloc, gf, se))
 end
 
+
+"""
+    assemble(gf₁₁::AbstractArray, gf₁₂::AbstractMatrix, gf₂₁::AbstractMatrix, gf₂₂::AbstractMatrix,
+             pf::RateStateQuasiDynamicProperty, pa::ViscosityProperty, u0::ArrayPartition, tspan::NTuple{2};
+             se::StateEvolutionLaw=DieterichStateLaw(), kwargs...)
+
+Construct an `ODEProblem` for viscoelastic rate-and-state friction model with quasi-dynamic evolution.
+
+## Arguments
+- `gf₁₁`: Greens function array for fault-fault interaction
+- `gf₁₂`: Greens function array for fault-mantle interaction
+- `gf₂₁`: Greens function array for mantle-fault interaction
+- `gf₂₂`: Greens function array for mantle-mantle interaction
+- `pf`: rate-and-state quasi-dynamic property for fault
+- `pa`: viscosity property for mantle
+- `u0`: initial state partition, must be an `ArrayPartition` with 5 components: velocity, state variable, strain, stress, and fault slip
+- `tspan`: time span for the simulation, a tuple of two values (start, stop)
+- `se`: state evolution law, defaults to `DieterichStateLaw()`
+"""
 function assemble(
     gf₁₁::AbstractArray,
     gf₁₂::AbstractMatrix,
@@ -193,6 +240,7 @@ end
     p::RateStateQuasiDynamicProperty, dila::DilatancyProperty,
     alloc::TractionRateAllocFFTConv,
     v::T, θ::T, 𝓅::T, dv::T, dθ::T, dδ::T, d𝓅::T, se::StateEvolutionLaw) where T
+    # Ref: https://doi.org/10.1002/grl.50298
 
     @batch for i ∈ eachindex(v)
         dθ[i] = dθ_dt(se, v[i], θ[i], p.L[i])
