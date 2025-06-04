@@ -20,6 +20,19 @@ abstract type UnstructuredMesh{dim} <: AbstractMesh{dim} end
     @assert length(ξ) == length(aξ) == nξ == length(y) == length(z)
 end
 
+"""
+    gen_mesh(::Val{:RectOkada},
+        x::T, ξ::T, Δx::T, Δξ::T, dip::T) where T
+
+Generate a rectangular mesh for Okada's fault model in 2D.
+
+## Arguments
+- `x`: length of the fault along strike
+- `ξ`: length of the fault along downdip
+- `Δx`: cell size along strike
+- `Δξ`: cell size along downdip
+- `dip`: dipping angle of the fault in degrees
+"""
 function gen_mesh(::Val{:RectOkada}, x::T, ξ::T, Δx::T, Δξ::T, dip::T) where T
     ξ, nξ, aξ, y, z = _equidist_mesh_downdip(ξ, Δξ, dip)
     x, nx, ax = _equidist_mesh_strike(x, Δx)
