@@ -33,3 +33,5 @@ Manifest.toml
 *.h5
 *.bson
 *.json
+
+.DS_Store
