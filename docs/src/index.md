@@ -16,6 +16,14 @@ A collection of commonly used Green's functions can be accessed at [GeoGreensFun
 
 This package undergoes extensive testings, which also provides many usage examples.
 
+## Installation
+
+You can install this package of a specific version:
+
+```julia
+(@v1.11) pkg> add https://github.com/shipengcheng1230/Oetqf.jl#v0.3.1
+```
+
 ## Known Issues
 
 - The competition between Julia threads and BLAS threads when hyperthreading is disabled, see [this example](https://discourse.julialang.org/t/possible-performance-drop-when-using-more-than-one-socket-threads/62022).
