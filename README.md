@@ -11,6 +11,14 @@ This package is used to simulate the quasi-dynamic earthquake cycles under the f
 
 Currently, this package is under maintenance mode. Contributions and questions are welcome, feel free to raise them in the GitHub issues or dicussions pages. If you find this package useful in your research, please cite the reference listed below.
 
+## Installation
+
+You can install this package of a specific version:
+
+```julia
+(@v1.11) pkg> add https://github.com/shipengcheng1230/Oetqf.jl#v0.3.1
+```
+
 ## Reference
 
 - Wei, M., & Shi, P. (2021). Synchronization of Earthquake Cycles of Adjacent Segments on Oceanic Transform Faults Revealed by Numerical Simulation in the Framework of Rate-and-State Friction. Journal of Geophysical Research: Solid Earth, 126(1), e2020JB020231. https://doi.org/10.1029/2020JB020231

@@ -73,7 +73,10 @@ Construct an `ODEProblem` for rate-and-state friction model with quasi-dynamic e
 - `p`: rate-and-state quasi-dynamic property
 - `u0`: initial state partition, must be an `ArrayPartition` with 3 components: velocity, state variable, and fault slip
 - `tspan`: time span for the simulation, a tuple of two values (start, stop)
-- `se`: state evolution law, defaults to `DieterichStateLaw()
+- `se`: state evolution law, defaults to `DieterichStateLaw()`
+
+## Returns
+- An `ODEProblem` object that can be solved using `OrdinaryDiffEq.jl`.
 """
 function assemble(
     gf::AbstractArray,
@@ -98,6 +101,9 @@ Construct an `ODEProblem` for rate-and-state friction model with dilatancy and q
 - `u0`: initial state partition, must be an `ArrayPartition` with 4 components: velocity, state variable, pressure, and fault slip
 - `tspan`: time span for the simulation, a tuple of two values (start, stop)
 - `se`: state evolution law, defaults to `DieterichStateLaw()`
+
+## Returns
+- An `ODEProblem` object that can be solved using `OrdinaryDiffEq.jl`
 """
 function assemble(
     gf::AbstractArray,
@@ -128,6 +134,9 @@ Construct an `ODEProblem` for viscoelastic rate-and-state friction model with qu
 - `u0`: initial state partition, must be an `ArrayPartition` with 5 components: velocity, state variable, strain, stress, and fault slip
 - `tspan`: time span for the simulation, a tuple of two values (start, stop)
 - `se`: state evolution law, defaults to `DieterichStateLaw()`
+
+## Returns
+- An `ODEProblem` object that can be solved using `OrdinaryDiffEq.jl`
 """
 function assemble(
     gf₁₁::AbstractArray,
