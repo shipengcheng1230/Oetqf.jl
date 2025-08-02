@@ -6,6 +6,19 @@ const gmshcelltype2vtkcelltype = Dict(
     5 => VTKCellTypes.VTK_HEXAHEDRON,
 )
 
+"""
+    gen_vtk_grid(t::Val{:BEMHex8Mesh}, mesh)
+
+This function uses GMSH to read the Hex8 mesh and convert it into a VTK grid format
+    for visualization in Paraview or similar tools.
+
+## Arguments
+- `t::Val{:BEMHex8Mesh}`: a value type indicating the mesh type
+- `mesh`: the mesh object to be converted
+
+## Returns
+- A tuple containing the points and cells of the mesh in VTK format.
+"""
 function gen_vtk_grid(::Val{:BEMHex8Mesh}, mesh)
     @gmsh_open mesh begin
         @addOption begin
@@ -25,6 +38,17 @@ end
 
 gen_vtk_grid(t::Val{:BEMHex8Mesh}, mesh, output) = vtk_grid(output, gen_vtk_grid(t, mesh)...)
 
+"""
+    gen_vtk_grid(mesh::RectOkadaMesh)  
+
+This function creates a grid suitable for visualization in Paraview or similar tools.
+
+## Arguments
+- `mesh::RectOkadaMesh`: the rectangular Okada mesh object
+
+## Returns
+- A tuple containing the x, y, and z coordinates of the grid points.
+"""
 function gen_vtk_grid(mesh::RectOkadaMesh)
     mesh.dip ≈ 90.0 || error("An inclined plane requires unstructured mesh in Paraview!")
     xs = cat(map(x -> x[1], mesh.ax), mesh.ax[end][2], dims=1)
@@ -35,6 +59,26 @@ end
 
 gen_vtk_grid(mesh::RectOkadaMesh, output) = vtk_grid(output, gen_vtk_grid(mesh)...)
 
+"""
+    gen_pvd(mf::RectOkadaMesh, mafile, solh5, tstr, ufstrs, uastrs, steps, output;
+        tscale=365*86400, mafiletype=Val(:BEMHex8Mesh))
+This function generates a Paraview collection file from the Okada mesh (fault plane) and the volume mesh, and solution data stored in an HDF5 file.
+
+## Arguments
+- `mf::RectOkadaMesh`: the rectangular Okada mesh object
+- `mafile`: the mesh file for the BEM model
+- `solh5`: the HDF5 file containing the solution data
+- `tstr`: the name of the time data in the HDF5 file
+- `ufstrs`: a vector of strings representing the names of the solution components (fault) in the HDF5 file
+- `uastrs`: a vector of strings representing the names of the solution components (mantle) in the HDF5 file
+- `steps`: a vector of integers representing the time steps to be included in the output
+- `output`: the output directory for the Paraview collection file
+- `tscale`: a scaling factor for the time data (default is 365*86400 seconds, which is one year)
+- `mafiletype`: the type of the mesh file, default is `:BEMHex8Mesh`, which indicates a BEM mesh with Hex8 elements
+
+## Returns
+- A Paraview collection file containing the mesh and solution data at specified time steps.
+"""
 function gen_pvd(mf::RectOkadaMesh, mafile, solh5, tstr, ufstrs, uastrs, steps, output;
     tscale=365*86400, mafiletype=Val(:BEMHex8Mesh))
 

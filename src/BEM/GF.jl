@@ -5,7 +5,29 @@ struct StrikeSlip <: FaultType end
 struct DipSlip <: FaultType end
 
 # multi-threading
+"""
+    stress_greens_function(mesh::RectOkadaMesh, λ::T, μ::T;
+        ftype::FaultType=StrikeSlip(), fourier::Bool=true,
+        nrept::Integer=2, buffer_ratio::Real=0, fftw_flags::UInt32=FFTW.PATIENT
+    ) where {T <: Real}
+     
+This function computes the stress Green's function for a rectangular Okada mesh fault.
 
+## Arguments
+- `mesh::RectOkadaMesh`: the rectangular Okada mesh object
+- `λ::T`: Lamé's first parameter
+- `μ::T`: shear modulus
+- `ftype::FaultType=StrikeSlip()`: type of fault, either `StrikeSlip` or `DipSlip`
+- `fourier::Bool=true`: if true, return the Fourier transform of the Green's function
+- `nrept::Integer=2`: number of repetitions for the dislocation
+- `buffer_ratio::Real=0`: ratio of buffer zone around the mesh
+- `fftw_flags::UInt32=FFTW.PATIENT`: flags for FFTW plan
+
+## Returns
+- If `fourier` is true, returns the Fourier transform of the stress Green's function, 
+    otherwise, returns the stress Green's function as a 3D array. The array considers the 
+    translational symmetry of the transfinite mesh.
+"""
 function stress_greens_function(mesh::RectOkadaMesh, λ::T, μ::T;
     ftype::FaultType=StrikeSlip(), fourier::Bool=true,
     nrept::Integer=2, buffer_ratio::Real=0, fftw_flags::UInt32=FFTW.PATIENT
@@ -73,7 +95,31 @@ end
     (σ[6] - σ[4]) / 2 * sind(2dip) + σ[5] * cosd(2dip)
 end
 
-#
+"""
+    stress_greens_function(
+        mf::RectOkadaMesh, ma::BEMHex8Mesh,
+        λ::T, μ::T;
+        ftype::FaultType=StrikeSlip(),
+        qtype::Union{String, Tuple{AbstractVecOrMat, AbstractVector}}="Gauss1",
+        nrept::Integer=2, buffer_ratio::Real=0,
+    ) where {T}
+
+This function computes the stress Green's function for a source in Okada mesh to a receiver on Hex8 mesh.
+
+## Arguments
+- `mf::RectOkadaMesh`: the rectangular Okada mesh object
+- `ma::BEMHex8Mesh`: the BEM Hex8 mesh object
+- `λ::T`: Lamé's first parameter            
+- `μ::T`: shear modulus
+- `ftype::FaultType=StrikeSlip()`: type of fault, either `StrikeSlip` or `DipSlip`
+- `qtype::Union{String, Tuple{AbstractVecOrMat, AbstractVector}}`: quadrature type for integration, can be a string or a tuple of local coordinates and weights
+- `nrept::Integer=2`: number of repetitions for the dislocation
+- `buffer_ratio::Real=0`: ratio of buffer zone around the mesh  
+
+## Returns
+- A 2D array of stress Green's functions, where each column corresponds to a source fault patch 
+and each row corresponds to a receiver mantle patch.
+"""
 function stress_greens_function(
     mf::RectOkadaMesh, ma::BEMHex8Mesh,
     λ::T, μ::T;
@@ -127,6 +173,24 @@ function stress_greens_function(
     return st
 end
 
+"""
+    stress_greens_function(ma::BEMHex8Mesh, mf::RectOkadaMesh, λ::T, μ::T;
+        ftype::FaultType=StrikeSlip(),
+    ) where {T}
+
+This function computes the stress Green's function for a source in Hex8 mesh to a receiver on Okada mesh.
+
+## Arguments
+- `ma::BEMHex8Mesh`: the BEM Hex8 mesh object
+- `mf::RectOkadaMesh`: the rectangular Okada mesh object
+- `λ::T`: Lamé's first parameter
+- `μ::T`: shear modulus
+- `ftype::FaultType=StrikeSlip()`: type of fault, either `StrikeSlip` or `DipSlip`
+
+## Returns
+- A 2D array of stress Green's functions, where each column corresponds to a source
+mantle patch and each row corresponds to a receiver fault patch.
+"""
 function stress_greens_function(
     ma::BEMHex8Mesh, mf::RectOkadaMesh,
     λ::T, μ::T;
@@ -162,6 +226,27 @@ function stress_greens_function(
     return st
 end
 
+"""
+    stress_greens_function(
+        mesh::BEMHex8Mesh,
+        λ::T, μ::T;
+        qtype::Union{String, Tuple{AbstractVecOrMat, AbstractVector}}="Gauss1",
+        checkeigvals::Bool=true,
+    ) where {T}
+
+This function computes the stress Green's function for a BEM Hex8 mesh.
+
+## Arguments
+- `mesh::BEMHex8Mesh`: the BEM Hex8 mesh object
+- `λ::T`: Lamé's first parameter
+- `μ::T`: shear modulus
+- `qtype::Union{String, Tuple{AbstractVecOrMat, AbstractVector}}` quadrature type for integration, can be a string or a tuple of local coordinates and weights
+- `checkeigvals::Bool=true`: if true, check the eigenvalues of the resulting stress matrix and print the maximum real part   
+
+## Returns
+- A 2D array of stress Green's functions, where each column corresponds to a source
+mantle patch and each row corresponds to another mantle patch.
+"""
 function stress_greens_function(
     mesh::BEMHex8Mesh,
     λ::T, μ::T;
@@ -212,6 +297,18 @@ end
 
 const QuadratureType = Tuple{AbstractVecOrMat, AbstractVector}
 
+"""
+    gmsh_quadrature(etype::Integer, qtype::String)::QuadratureType
+
+This function retrieves the integration points and weights for a given element type and quadrature type from GMSH.
+
+## Arguments
+- `etype::Integer`: the element type ID in GMSH
+- `qtype::String`: the quadrature type, e.g., "Gauss1"
+
+## Returns
+- A tuple containing the local coordinates and weights for the quadrature points.
+"""
 function gmsh_quadrature(etype::Integer, qtype::String)::QuadratureType
     @gmsh_do begin
         return gmsh.model.mesh.getIntegrationPoints(etype, qtype)

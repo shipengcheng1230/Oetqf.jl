@@ -33,3 +33,6 @@ Manifest.toml
 *.h5
 *.bson
 *.json
+
+# macOS specific files
+.DS_Store

@@ -19,6 +19,8 @@ makedocs(
         "Examples" => [
             "A 2D transform fault overlaying a 3D mantle" => "generated/otf-with-mantle.md",
         ],
+        "Parameters" => "parameters.md",
+        "Testing" => "testing.md",
         "APIs" => "APIs.md",
     ],
 )

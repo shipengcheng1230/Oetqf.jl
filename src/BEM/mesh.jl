@@ -32,6 +32,9 @@ Generate a rectangular mesh for Okada's fault model in 2D.
 - `Δx`: cell size along strike
 - `Δξ`: cell size along downdip
 - `dip`: dipping angle of the fault in degrees
+
+## Returns
+- A `RectOkadaMesh` object representing the transfinite mesh suitable for fault modeling.
 """
 function gen_mesh(::Val{:RectOkada}, x::T, ξ::T, Δx::T, Δξ::T, dip::T) where T
     ξ, nξ, aξ, y, z = _equidist_mesh_downdip(ξ, Δξ, dip)
@@ -85,6 +88,9 @@ Gernate a box using 8-node hexahedron elements by vertically extruding transfini
 - `nx`, `ny`: number of cells along x-, y-axis
 - `rfx`, `rfy`: refinement coefficients along x-, y-axis using **Bump** algorithm, please refer `gmsh.model.geo.mesh.setTransfiniteCurve`
 - `rfzh`: accumulated height of cells along z-axis which will be normalized automatically, please refer `heights` in `gmsh.model.geo.extrude`
+
+## Returns
+- A GMSH mesh file of the `BEMHex8Mesh`` for the mantle deformation modeling.
 """
 function gen_gmsh_mesh(::Val{:BEMHex8Mesh},
     llx::T, lly::T, llz::T, dx::T, dy::T, dz::T, nx::I, ny::I, nz::I;
@@ -126,6 +132,20 @@ function gen_gmsh_mesh(::Val{:BEMHex8Mesh},
     end
 end
 
+"""
+    gen_mesh(::Val{:BEMHex8Mesh}, file::AbstractString;
+        rotation::Real=0.0, transpose::Bool=false)
+
+Load a BEM Hex8 mesh from a GMSH file.
+
+## Arguments
+- `file::AbstractString`: path to the GMSH mesh file
+- `rotation::Real=0.0`: rotation angle in degrees to apply to the mesh
+- `transpose::Bool=false`: if true, transpose the mesh coordinates
+
+## Returns
+- A `BEMHex8Mesh` object representing the mantle mesh for modeling.
+"""
 function gen_mesh(::Val{:BEMHex8Mesh}, file::AbstractString; rotation::Real=0.0, transpose::Bool=false)
     isfile(file) || ErrorException("Mesh file $(file) does not exist.")
 
