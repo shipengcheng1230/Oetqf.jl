@@ -1,5 +1,5 @@
 ---
-title: 'Oetqf: A Python package for quasi-dyanmic earthquake cycle simulation'
+title: 'Oetqf: A Julia package for quasi-dynamic earthquake cycle simulation'
 tags:
   - Julia
   - geophysics
