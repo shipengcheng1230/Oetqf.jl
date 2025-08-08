@@ -99,7 +99,10 @@ Write the solution to HDF5 file while solving the ODE. The interface
 ## Extra Arguments
 - `file::AbstractString`: name of file to be saved
 - `nstep::Integer`: number of steps after which a saving operation will be performed
-- `getu::Function`: function handler to extract desired solution for saving
+- `getu::Function`: function handler to extract desired solution for saving, which should have the signature
+    `getu(u, t, integrator)`, where `u` is the current solution, `t` is the current time,
+    and `integrator` is the current integrator object. The output should be a tuple of
+    arrays or vectors to be saved.
 - `ustr::AbstractVector`: list of names to be assigned for each components, whose
     length must equal the length of `getu` output
 - `tstr::AbstractString`: name of time data
@@ -108,6 +111,9 @@ Write the solution to HDF5 file while solving the ODE. The interface
 - `stride::Integer=1`: downsampling rate for saving outputs
 - `append::Bool=false`: if true then append solution after the end of `file`
 - `force::Bool=false`: force to overwrite the existing solution file
+
+## Returns
+- `sol::ODESolution`: the solution object of `OrdinaryDiffEq.jl`
 """
 function wsolve(prob::ODEProblem, alg::OrdinaryDiffEq.OrdinaryDiffEqAlgorithm, file, nstep, getu, ustrs, tstr; stride::Integer=1, append::Bool=false, force::Bool=false, kwargs...)
     if isfile(file) && !force && !append

@@ -12,9 +12,13 @@ This package uses HDF5 to save the numerical output for further analysis. It als
 
 A collection of commonly used Green's functions can be accessed at [GeoGreensFunctions.jl](https://github.com/shipengcheng1230/GeoGreensFunctions.jl). The package uses [Gmsh](https://gmsh.info/) for domain discreitzation. See [GmshTools.jl](https://github.com/shipengcheng1230/GmshTools.jl) also for a more convenient way to use Gmsh in Julia.
 
-## Testings
+## Installation
 
-This package undergoes extensive testings, which also provides many usage examples.
+You can install this package of a specific version:
+
+```julia
+(@v1.11) pkg> add https://github.com/shipengcheng1230/Oetqf.jl#v0.3.1
+```
 
 ## Installation
 
