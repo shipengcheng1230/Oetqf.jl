@@ -20,6 +20,14 @@ You can install this package of a specific version:
 (@v1.11) pkg> add https://github.com/shipengcheng1230/Oetqf.jl#v0.3.1
 ```
 
+## Installation
+
+You can install this package of a specific version:
+
+```julia
+(@v1.11) pkg> add https://github.com/shipengcheng1230/Oetqf.jl#v0.3.1
+```
+
 ## Known Issues
 
 - The competition between Julia threads and BLAS threads when hyperthreading is disabled, see [this example](https://discourse.julialang.org/t/possible-performance-drop-when-using-more-than-one-socket-threads/62022).
