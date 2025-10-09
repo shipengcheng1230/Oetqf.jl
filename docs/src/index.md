@@ -17,7 +17,7 @@ A collection of commonly used Green's functions can be accessed at [GeoGreensFun
 You can install this package of a specific version:
 
 ```julia
-(@v1.11) pkg> add https://github.com/shipengcheng1230/Oetqf.jl#v0.3.1
+(@v1.11) pkg> add https://github.com/shipengcheng1230/Oetqf.jl#<version_number>
 ```
 
 ## Known Issues
