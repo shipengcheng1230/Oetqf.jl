@@ -153,6 +153,22 @@ function assemble(
     return ODEProblem{true}(ode, u0, tspan, (pf, pa, alloc₁, alloc₂, gf₁₁, gf₁₂, gf₂₁, gf₂₂, se))
 end
 
+function assemble(
+    gf₁₁::AbstractArray,
+    gf₁₂::AbstractMatrix,
+    gf₂₁::AbstractMatrix,
+    gf₂₂::AbstractMatrix,
+    pf::RateStateQuasiDynamicProperty,
+    pa::ViscosityProperty,
+    dila::DilatancyProperty,
+    u0::ArrayPartition, tspan::NTuple{2};
+    se::StateEvolutionLaw=DieterichStateLaw(), kwargs...)
+
+    alloc₁ = gen_alloc(Val(:BEMFault), size(u0.x[1])...; kwargs...)
+    alloc₂ = gen_alloc(Val(:BEMMantle), size(u0.x[3], 1))
+    return ODEProblem{true}(ode, u0, tspan, (pf, pa, dila, alloc₁, alloc₂, gf₁₁, gf₁₂, gf₂₁, gf₂₂, se))
+end
+
 function ode(du::T, u::T, p::Tuple{P, AL, A, SE}, t::U
     ) where {T, U, P<:AbstractProperty, AL<:ODEAllocation, A, SE<:StateEvolutionLaw}
 
@@ -204,6 +220,29 @@ function ode(du::T, u::T, p::Tuple{P1, P2, AL1, AL2, A, U, U, U, SE}, t::V
     update_fault!(pf, alloc1, v, θ, dv, dθ, dδ, se)
 end
 
+function ode(du::T, u::T, p::Tuple{P1, P2, Dila, AL1, AL2, A, U, U, U, SE}, t::V
+    ) where {
+        T, U, V, A,
+        SE<:StateEvolutionLaw,
+        P1<:RateStateQuasiDynamicProperty, P2<:ViscosityProperty, Dila<:DilatancyProperty,
+        AL1<:TractionRateAllocFFTConv, AL2<:StressRateAllocMatrix
+    }
+
+    v, θ, _, σ, 𝓅, _ = u.x
+    dv, dθ, dϵ, dσ, d𝓅, dδ = du.x
+    pf, pa, dila, alloc1, alloc2, gf₁₁, gf₁₂, gf₂₁, gf₂₂, se = p
+
+    relative_velocity!(alloc1, pf.vpl, v)
+    update_strain_rate!(pa, σ, dϵ)
+    relative_strain_rate!(alloc2, dϵ, pa.dϵ₀)
+    dτ_dt!(gf₁₁, alloc1) # fault - fault
+    matvecmul!(vec(alloc1.dτ_dt), gf₂₁, vec(alloc2.reldϵ), true, true) # mantle - fault
+    matvecmul!(vec(dσ), gf₁₂, vec(alloc1.relvnp)) # fault - mantle
+    matvecmul!(vec(dσ), gf₂₂, vec(alloc2.reldϵ), true, true) # mantle - mantle
+    update_fault_with_dilatancy!(pf, dila, alloc1, v, θ, 𝓅, dv, dθ, dδ, d𝓅, se)
+end
+
+
 @inline function update_strain_rate!(p::ViscosityProperty, σ::T, dϵ::T) where T
     @batch for i ∈ axes(σ, 1)
         σkk = (σ[i,1] + σ[i,4] + σ[i,6]) / 3
@@ -220,6 +259,31 @@ end
         dϵ[i,6] = dϵ_dt(p, i, σzz, τnorm)
     end
 end
+
+#@inline function update_strain_rate!(p::ViscosityProperty, σ::T, dϵ::T, 𝓅::T) where T
+    #@batch for i ∈ axes(σ, 1)
+        #σkk = (σ[i,1] + σ[i,4] + σ[i,6]) / 3 - 𝓅[i] # subtracting pore pressure for volumetric stress
+        #σxx = σ[i,1] - σkk
+        #σyy = σ[i,4] - σkk
+        #σzz = σ[i,6] - σkk
+        #σxy, σxz, σyz = σ[i,2], σ[i,3], σ[i,5]
+        
+        # Adjustments for effective stresses due to pore pressure
+        #σxx -= 𝓅[i]
+        #σyy -= 𝓅[i]
+        #σzz -= 𝓅[i]
+        # Note: σxy, σxz, and σyz are shear stresses and might not be directly affected by pore pressure.
+
+        #τnorm = sqrt(σxx^2 + σyy^2 + σzz^2 + 2 * (σxy^2 + σxz^2 + σyz^2))
+        #dϵ[i,1] = dϵ_dt(p, i, σxx, τnorm)
+        #dϵ[i,2] = dϵ_dt(p, i, σxy, τnorm)
+        #dϵ[i,3] = dϵ_dt(p, i, σxz, τnorm)
+        #dϵ[i,4] = dϵ_dt(p, i, σyy, τnorm)
+        #dϵ[i,5] = dϵ_dt(p, i, σyz, τnorm)
+        #dϵ[i,6] = dϵ_dt(p, i, σzz, τnorm)
+    #end
+#end
+
 
 @inline function relative_strain_rate!(alloc::StressRateAllocMatrix, dϵ::AbstractMatrix, dϵ₀::AbstractVector)
     @batch for i ∈ axes(dϵ, 1)
