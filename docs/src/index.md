@@ -20,6 +20,14 @@ You can install this package of a specific version:
 (@v1.11) pkg> add https://github.com/shipengcheng1230/Oetqf.jl#<version_number>
 ```
 
+## Contributing
+
+Contributions are highly welcome and encouraged! Whether you’re interested in extending the physics (e.g., fault or mantle dynamics), improving geometric or meshing capabilities, or optimizing performance and parallelism, your input is hugely valuable!
+
+- For ideas or feature requests, please open an issue or discussion thread.
+- For code contributions, please work from a fork of this repository and open a pull request when your changes are ready. Small improvements and major additions are equally appreciated.
+- If you’d like to collaborate on research-level extensions, don’t hesitate to reach out by email.
+
 ## Known Issues
 
 - The competition between Julia threads and BLAS threads when hyperthreading is disabled, see [this example](https://discourse.julialang.org/t/possible-performance-drop-when-using-more-than-one-socket-threads/62022).
