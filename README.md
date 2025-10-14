@@ -16,7 +16,7 @@ Currently, this package is under maintenance mode. Contributions and questions a
 You can install this package of the latest stable version via:
 
 ```julia
-(@v1.11) pkg> add https://github.com/shipengcheng1230/Oetqf.jl#v0.3.3
+(@v1.11) pkg> add https://github.com/shipengcheng1230/Oetqf.jl#v0.3.4
 ```
 
 ## Contributing
@@ -24,7 +24,7 @@ You can install this package of the latest stable version via:
 Contributions are highly welcome and encouraged! Whether you’re interested in extending the physics (e.g., fault or mantle dynamics), improving geometric or meshing capabilities, or optimizing performance and parallelism, your input is hugely valuable!
 
 - For ideas or feature requests, please open an issue or discussion thread.
-- For code contributions, feel free to submit a pull request — small improvements and major additions are equally appreciated.
+- For code contributions, please work from a fork of this repository and open a pull request when your changes are ready. Small improvements and major additions are equally appreciated.
 - If you’d like to collaborate on research-level extensions, don’t hesitate to reach out by email.
 
 ## Reference

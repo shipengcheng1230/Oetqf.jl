@@ -1,7 +1,7 @@
 name = "Oetqf"
 uuid = "ba4b8404-3ddb-4226-b41e-638ed858d44e"
 authors = ["Pengcheng Shi <shipengcheng1230@gmail.com>"]
-version = "0.3.3"
+version = "0.3.4"
 
 [deps]
 BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
