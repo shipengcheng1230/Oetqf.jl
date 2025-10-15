@@ -16,7 +16,7 @@ Currently, this package is under maintenance mode. Contributions and questions a
 You can install this package of the latest stable version via:
 
 ```julia
-(@v1.11) pkg> add https://github.com/shipengcheng1230/Oetqf.jl#v0.3.4
+(@v1.11) pkg> add https://github.com/shipengcheng1230/Oetqf.jl#v0.3.5
 ```
 
 ## Contributing
