@@ -8,6 +8,9 @@
 
 using Oetqf, SpecialFunctions, Optim
 
+# !!! tip
+#     You will need to install [SpecialFunctions](https://github.com/JuliaMath/SpecialFunctions.jl) and [Optim](https://github.com/JuliaNLSolvers/Optim.jl) to run this example. We use them to help set up the initial conditions for the equations.
+
 # # Generate the meshes
 
 # Generate the mesh for the transform fault, which is suitable for using the Okada (1992) equation.

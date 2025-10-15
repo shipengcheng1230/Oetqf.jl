@@ -17,16 +17,16 @@ A collection of commonly used Green's functions can be accessed at [GeoGreensFun
 You can install this package of a specific version:
 
 ```julia
-(@v1.11) pkg> add https://github.com/shipengcheng1230/Oetqf.jl#v0.3.1
+(@v1.11) pkg> add https://github.com/shipengcheng1230/Oetqf.jl#<version_number>
 ```
 
-## Installation
+## Contributing
 
-You can install this package of a specific version:
+Contributions are highly welcome and encouraged! Whether you’re interested in extending the physics (e.g., fault or mantle dynamics), improving geometric or meshing capabilities, or optimizing performance and parallelism, your input is hugely valuable!
 
-```julia
-(@v1.11) pkg> add https://github.com/shipengcheng1230/Oetqf.jl#v0.3.1
-```
+- For ideas or feature requests, please open an issue or discussion thread.
+- For code contributions, please work from a fork of this repository and open a pull request when your changes are ready. Small improvements and major additions are equally appreciated.
+- If you’d like to collaborate on research-level extensions, don’t hesitate to reach out by email.
 
 ## Known Issues
 
