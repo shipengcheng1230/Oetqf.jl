@@ -4,6 +4,7 @@
 [![codecov](https://codecov.io/gh/shipengcheng1230/Oetqf.jl/branch/master/graph/badge.svg?token=e85AwCR80f)](https://codecov.io/gh/shipengcheng1230/Oetqf.jl)
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://shipengcheng1230.github.io/Oetqf.jl/dev/)
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://shipengcheng1230.github.io/Oetqf.jl/stable)
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.08597/status.svg)](https://doi.org/10.21105/joss.08597)
 
 ## Introduction
 
@@ -16,7 +17,7 @@ Currently, this package is under maintenance mode. Contributions and questions a
 You can install this package of the latest stable version via:
 
 ```julia
-(@v1.11) pkg> add https://github.com/shipengcheng1230/Oetqf.jl#v0.3.5
+(@v1.11) pkg> add https://github.com/shipengcheng1230/Oetqf.jl#v0.3.6
 ```
 
 ## Contributing
@@ -32,3 +33,5 @@ Contributions are highly welcome and encouraged! Whether you’re interested in 
 - Wei, M., & Shi, P. (2021). Synchronization of Earthquake Cycles of Adjacent Segments on Oceanic Transform Faults Revealed by Numerical Simulation in the Framework of Rate-and-State Friction. Journal of Geophysical Research: Solid Earth, 126(1), e2020JB020231. https://doi.org/10.1029/2020JB020231
 
 - Shi, P., Wei, M., & Barbot, S. (2022). Contribution of Viscoelastic Stress to the Synchronization of Earthquake Cycles on Oceanic Transform Faults. Journal of Geophysical Research: Solid Earth, 127, e2022JB024069. https://doi.org/10.1029/2022JB024069
+
+- Shi et al., (2025). Oetqf: A Julia package for quasi-dynamic earthquake cycle simulation. Journal of Open Source Software, 10(114), 8597, https://doi.org/10.21105/joss.08597
